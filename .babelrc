@@ -49,7 +49,7 @@
         "throwIfClosureRequired": true
       }
     ],
-    // 按需引入 React Mobile 组件
+    // 按需引入 Ant Design Mobile 组件
     [
       "import",
       {
