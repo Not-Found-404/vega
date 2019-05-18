@@ -24,7 +24,7 @@ class Main extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedTab: 'homeTab',
+      selectedTab: 'homeTab', // 默认选中的 Tab 为首页
     };
     // 绑定 this
     this.changeRoute = this.changeRoute.bind(this);
@@ -36,15 +36,43 @@ class Main extends React.Component {
     history: PropTypes.object.isRequired
   };
 
-  componentDidMount(){
+  componentDidMount() {
+    // 装载组件进行 Tab 跳转
     this.changeRoute();
   }
 
   /**
-   * 路由切换检测
+   * 路由切换检测 - 根据当前路由进行 Tab 切换
    */
-  changeRoute(){
-    console.log('match:', this.props.match, 'location:', this.props.match, 'history:', this.props.match);
+  changeRoute() {
+    let location = this.props.location.pathname;
+    let locationUrls = location.substring(1, location.length).split('/');
+    console.log('当前路径:', location, '\n路径分割:', locationUrls);
+    switch (locationUrls[0]) {
+      case 'home':
+        this.setState(
+          {
+            selectedTab: 'homeTab',
+          }
+        );
+        break;
+      case 'order':
+        this.setState(
+          {
+            selectedTab: 'orderTab',
+          }
+        );
+        break;
+      case 'my':
+        this.setState(
+          {
+            selectedTab: 'myTab',
+          }
+        );
+        break;
+      default:
+        break;
+    }
   }
 
   render() {
@@ -57,7 +85,7 @@ class Main extends React.Component {
           barTintColor="white"
         >
           <TabBar.Item
-            title="主页"
+            title="首页"
             key="home"
             icon={<FontAwesomeIcon icon={faHome} size="lg" />}
             selectedIcon={<FontAwesomeIcon icon={faHome} size="lg" />}
@@ -72,7 +100,7 @@ class Main extends React.Component {
               });
             }}
           >
-            <Route path="/home" component={ Home } />
+            <Route path="/home" component={Home} />
           </TabBar.Item>
           <TabBar.Item
             icon={<FontAwesomeIcon icon={faClipboardList} size="lg" />}
@@ -90,7 +118,7 @@ class Main extends React.Component {
               });
             }}
           >
-            <Route path="/order" component={ Order } />
+            <Route path="/order" component={Order} />
           </TabBar.Item>
           <TabBar.Item
             icon={<FontAwesomeIcon icon={faUser} size="lg" />}
@@ -106,7 +134,7 @@ class Main extends React.Component {
               });
             }}
           >
-          <Route path="/my" component={ My } />
+            <Route path="/my" component={My} />
           </TabBar.Item>
         </TabBar>
       </div>
@@ -114,4 +142,4 @@ class Main extends React.Component {
   }
 }
 
-Main =  withRouter(Main);
+Main = withRouter(Main);
