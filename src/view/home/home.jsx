@@ -48,7 +48,6 @@ function genData(pIndex = 0) {
 
 export class Home extends React.Component {
 
-
   /**
    * 构造函数
    * @param {any} props - 组件初始化参数
@@ -74,7 +73,6 @@ export class Home extends React.Component {
     }
   }
 
-
   // 组件生命周期 - 组件挂载
   componentDidMount() {
     // 跑马灯图片加载
@@ -83,7 +81,7 @@ export class Home extends React.Component {
         carouselData: ['AiyWuByWklrrUDlFignR', 'TekJlZRVCjLFexlOCuWn', 'IJOtIlfsYdTyaDTRVrLI'],
       });
     }, 100);
-
+    console.log("lv:", this.lv);
     // 店铺列表加载
     const hei = document.documentElement.clientHeight - ReactDOM.findDOMNode(this.lv).parentNode.offsetTop;
     setTimeout(() => {
@@ -115,6 +113,7 @@ export class Home extends React.Component {
   }
 
   render() {
+    // 如果提供了此属性，一个可渲染的组件会被渲染在每一行下面，除了小节标题的前面的最后一行。在其上方的小节ID和行ID，以及邻近的行是否被高亮会作为参数传递进来。
     const separator = (sectionID, rowID) => (
       <div
         key={`${sectionID}-${rowID}`}
@@ -128,7 +127,9 @@ export class Home extends React.Component {
     );
 
     let index = data.length - 1;
-    const row = (rowData, sectionID, rowID) => {
+    // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
+    const rowRender = (rowData, sectionID, rowID) => {
+      console.log('渲染行数据源:\nrowData:', rowData, 'sectionId:', sectionID, 'rowId:', rowID);
       if (index < 0) {
         index = data.length - 1;
       }
@@ -226,28 +227,45 @@ export class Home extends React.Component {
         <Card full>
           <Card.Header title="好店推荐" />
           <Card.Body className="card-body">
-            {/* 店铺列表 */}
+
+            {/* 店铺列表 - ListView */}
             <ListView
+              // 映射 ListView
               ref={el => this.lv = el}
+              // ListView 数据源
               dataSource={this.state.shopListData}
-              renderHeader={() => <span>header</span>}
-              renderFooter={() => (<div style={{ padding: 30, textAlign: 'center' }}>
-                {this.state.shopListIsLoading ? 'Loading...' : 'Loaded'}
-              </div>)}
+              // 渲染页脚
+              renderFooter={() =>
+                (
+                  <div style={{ padding: 30, textAlign: 'center' }}>
+                    {this.state.shopListIsLoading ? '加载中...' : '加载完成'}
+                  </div>
+                )
+              }
+              // 为每个小节(section)渲染一个标题
               renderSectionHeader={sectionData => (
                 <div>{`Task ${sectionData.split(' ')[1]}`}</div>
               )}
+              // 自定义 body 的包裹组件
               renderBodyComponent={() => <MyBody />}
-              renderRow={row}
+              // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
+              renderRow={ rowRender }
+              // 如果提供了此属性，一个可渲染的组件会被渲染在每一行下面，除了小节标题的前面的最后一行。在其上方的小节ID和行ID，以及邻近的行是否被高亮会作为参数传递进来。
               renderSeparator={separator}
+              // ListView 样式
               style={{
                 height: this.state.height,
                 overflow: 'auto',
               }}
+              // 每次事件循环（每帧）渲染的行数
               pageSize={4}
+              // 在滚动的过程中，每帧最多调用一次此回调函数。调用的频率可以用 scrollEventThrottle 属性来控制。
               onScroll={() => { console.log('scroll'); }}
+              // 当一个行接近屏幕范围多少像素之内的时候，就开始渲染这一行
               scrollRenderAheadDistance={500}
+              // 当所有的数据都已经渲染过，并且列表被滚动到距离最底部不足 onEndReachedThreshold 个像素的距离时调用
               onEndReached={this.onEndReached}
+              // 调用 onEndReached 之前的临界值
               onEndReachedThreshold={10}
             />
 
