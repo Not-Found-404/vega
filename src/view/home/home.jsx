@@ -4,7 +4,7 @@ import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card } from 'antd-mobi
 import './home.css';
 
 // 组件变量定义
-const data = [
+const shopData = [
   {
     img: 'https://zos.alipayobjects.com/rmsportal/dKbkpPXKfvZzWCM.png',
     title: 'Meet hotel',
@@ -94,7 +94,7 @@ export class Home extends React.Component {
       });
     }, 600);
   }
-
+  // 当所有的数据都已经渲染过，并且列表被滚动到距离最底部不足 onEndReachedThreshold 个像素的距离时调用
   onEndReached = (event) => {
     // load new data
     // hasMore: from backend data, indicates whether it is the last page, here is false
@@ -113,10 +113,14 @@ export class Home extends React.Component {
   }
 
   render() {
-    // 如果提供了此属性，一个可渲染的组件会被渲染在每一行下面，除了小节标题的前面的最后一行。在其上方的小节ID和行ID，以及邻近的行是否被高亮会作为参数传递进来。
-    const separator = (sectionID, rowID) => (
+    /**
+     * 元素分隔符
+     * @param {number} sectionID - 小节ID
+     * @param {number} rowID - 行ID
+     */
+    const shopItemSeparator = (sectionID, rowID) => (
       <div
-        key={`${sectionID}-${rowID}`}
+        key={ `${sectionID} - ${rowID}` }
         style={{
           backgroundColor: '#F5F5F9',
           height: 8,
@@ -126,14 +130,14 @@ export class Home extends React.Component {
       />
     );
 
-    let index = data.length - 1;
+    let index = shopData.length - 1;
     // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
     const rowRender = (rowData, sectionID, rowID) => {
       console.log('渲染行数据源:\nrowData:', rowData, 'sectionId:', sectionID, 'rowId:', rowID);
       if (index < 0) {
-        index = data.length - 1;
+        index = shopData.length - 1;
       }
-      const obj = data[index--];
+      const obj = shopData[index--];
       return (
         <div key={rowID} style={{ padding: '0 15px' }}>
           <div
@@ -243,15 +247,17 @@ export class Home extends React.Component {
                 )
               }
               // 为每个小节(section)渲染一个标题
-              renderSectionHeader={sectionData => (
-                <div>{`Task ${sectionData.split(' ')[1]}`}</div>
-              )}
+              renderSectionHeader = {sectionData =>
+                (
+                  <div>{`Task ${sectionData.split(' ')[1]}`}</div>
+                )
+              }
               // 自定义 body 的包裹组件
               renderBodyComponent={() => <MyBody />}
               // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
               renderRow={ rowRender }
               // 如果提供了此属性，一个可渲染的组件会被渲染在每一行下面，除了小节标题的前面的最后一行。在其上方的小节ID和行ID，以及邻近的行是否被高亮会作为参数传递进来。
-              renderSeparator={separator}
+              renderSeparator={ shopItemSeparator }
               // ListView 样式
               style={{
                 height: this.state.height,
