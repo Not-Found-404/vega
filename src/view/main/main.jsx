@@ -39,6 +39,8 @@ class Main extends React.Component {
   componentDidMount() {
     // 装载组件进行 Tab 跳转
     this.changeRoute();
+    // 默认路由跳转
+    this.props.history.push('/home');
   }
 
   /**

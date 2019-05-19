@@ -16,3 +16,24 @@
   border-radius: 50%;
   background-color: rgb(54, 194, 36);
 }
+.card-body{
+  padding: 0;
+}
+.shop-item{
+  height: 10em;
+  width: 100%;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+}
+/* 重写 Ant Mobile 样式 */
+.am-list-line{
+  padding: 0;
+}
+.shop-item__img-container{
+  height: 100%;
+}
+.shop-item__img{
+  height: 8em;
+  width: 8em;
+}
