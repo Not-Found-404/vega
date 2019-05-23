@@ -3,24 +3,6 @@ import ReactDOM from 'react-dom'
 import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card } from 'antd-mobile';
 import './home.css';
 
-// 组件变量定义
-const shopData = [
-  {
-    img: 'https://zos.alipayobjects.com/rmsportal/dKbkpPXKfvZzWCM.png',
-    title: 'Meet hotel',
-    des: '不是所有的兼职汪都需要风吹日晒',
-  },
-  {
-    img: 'https://zos.alipayobjects.com/rmsportal/XmwCzSeJiqpkuMB.png',
-    title: 'McDonald\'s invites you',
-    des: '金拱门',
-  },
-  {
-    img: 'https://zos.alipayobjects.com/rmsportal/hfVtzEhPzTUewPm.png',
-    title: 'Eat the week',
-    des: '不是所有的兼职汪都需要风吹日晒',
-  },
-];
 const NUM_SECTIONS = 5;
 const NUM_ROWS_PER_SECTION = 5;
 let pageIndex = 0;
@@ -70,7 +52,25 @@ export class Home extends React.Component {
       shopListData, // 店铺列表数据
       shopListIsLoading: true, // 店铺列表加载状态
       height: document.documentElement.clientHeight * 3 / 4, // 店铺列表图片高度
+      shopData : [
+        {
+          img: 'https://zos.alipayobjects.com/rmsportal/dKbkpPXKfvZzWCM.png',
+          title: 'Meet hotel',
+          des: '不是所有的兼职汪都需要风吹日晒',
+        },
+        {
+          img: 'https://zos.alipayobjects.com/rmsportal/XmwCzSeJiqpkuMB.png',
+          title: 'McDonald\'s invites you',
+          des: '金拱门',
+        },
+        {
+          img: 'https://zos.alipayobjects.com/rmsportal/hfVtzEhPzTUewPm.png',
+          title: 'Eat the week',
+          des: '不是所有的兼职汪都需要风吹日晒',
+        },
+      ],
     }
+
   }
 
   // 组件生命周期 - 组件挂载
@@ -113,6 +113,13 @@ export class Home extends React.Component {
     }, 1000);
   }
 
+  /**
+   * 获取店铺列表信息
+   */
+  getShopListData(){
+
+  }
+
   render() {
     /**
      * 元素分隔符
@@ -131,14 +138,16 @@ export class Home extends React.Component {
       />
     );
 
-    let index = shopData.length - 1;
+
+    let index = this.state.shopData.length - 1;
     // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
     const shopItemRender = (rowData, sectionID, rowID) => {
       console.log('渲染行数据源:\nrowData:', rowData, 'sectionId:', sectionID, 'rowId:', rowID);
       if (index < 0) {
-        index = shopData.length - 1;
+        index = this.state.shopData.length - 1;
       }
-      const shopItemData = shopData[index--];
+      const shopItemData = this.state.shopData[index--];
+      console.log('index:',index);
       return (
         <div key={rowID} className="shopList-item">
           <div className="shopList-item__thumb">
@@ -165,7 +174,7 @@ export class Home extends React.Component {
     /**
      * 店铺元素标签内容
      */
-    const shopItemTags = () => {
+    const shopItemTags = (tagsData) => {
       let shopTagRender = [];
       return (
         <dl className="shopList-item__content-tags__dl">
