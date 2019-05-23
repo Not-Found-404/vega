@@ -29,20 +29,21 @@ const dataBlobs = {};
 let sectionIDs = [];
 let rowIDs = [];
 function genData(pIndex = 0) {
-  for (let i = 0; i < NUM_SECTIONS; i++) {
-    const ii = (pIndex * NUM_SECTIONS) + i;
-    const sectionName = `shopListSection ${ii}`;
-    sectionIDs.push(sectionName);
-    dataBlobs[sectionName] = sectionName;
-    rowIDs[ii] = [];
-    for (let jj = 0; jj < NUM_ROWS_PER_SECTION; jj++) {
-      const rowName = `S${ii}, R${jj}`;
-      rowIDs[ii].push(rowName);
-      dataBlobs[rowName] = rowName;
-    }
+  if( pIndex === 0 ){
+    sectionIDs.push('shopListSection 1');
+    rowIDs.push([]);
+    dataBlobs['shopListSection 1'] = 'shopListSection 1';
   }
+  for( let i = 0; i < NUM_SECTIONS; i ++ ){
+    const rowNumber = ( pIndex * NUM_ROWS_PER_SECTION ) + i;
+    const rowName = `Sextion:1, Row:${rowNumber}`;
+    rowIDs[0].push(rowName);
+    dataBlobs[rowName] = rowName;
+  }
+  console.log(dataBlobs);
   sectionIDs = [...sectionIDs];
   rowIDs = [...rowIDs];
+  console.log('SectionIDs:', sectionIDs, '\nRowIDs:', rowIDs);
 }
 
 export class Home extends React.Component {
