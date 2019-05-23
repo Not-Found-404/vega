@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom'
 import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card } from 'antd-mobile';
+import { ShopWebService } from '../../service/shop/shop.web.service';
 import './home.css';
 
 const NUM_SECTIONS = 5;
@@ -29,7 +30,8 @@ function genData(pIndex = 0) {
 }
 
 export class Home extends React.Component {
-
+  // 组件参数
+  shopWebService = new ShopWebService();
   /**
    * 构造函数
    * @param {any} props - 组件初始化参数
@@ -69,7 +71,12 @@ export class Home extends React.Component {
           des: '不是所有的兼职汪都需要风吹日晒',
         },
       ],
+      shopListViewData: [],
+      shopListTotalNumber: 0,
     }
+
+    // 绑定 this
+    this.getShopListData = this.getShopListData.bind(this);
 
   }
 
@@ -93,6 +100,9 @@ export class Home extends React.Component {
         height: shopListHeight,
       });
     }, 600);
+
+    // 店铺列表数据初始化
+    this.getShopListData();
   }
   // 当所有的数据都已经渲染过，并且列表被滚动到距离最底部不足 onEndReachedThreshold 个像素的距离时调用
   onEndReached = (event) => {
@@ -116,8 +126,26 @@ export class Home extends React.Component {
   /**
    * 获取店铺列表信息
    */
-  getShopListData(){
-
+  getShopListData(pageIndex = 1){
+    this.shopWebService.shopPaging(
+      {
+        params: {
+          pageNo: pageIndex,
+          pageSize: 5,
+        },
+        success: (res) => {
+          console.log(res);
+          let shopListViewData = this.state.shopListViewData;
+          shopListViewData = shopListViewData.concat(res.data);
+          this.setState(
+            {
+              shopListViewData: shopListViewData,
+              shopListTotalNumber: res.total,
+            }
+          );
+        }
+      }
+    );
   }
 
   render() {

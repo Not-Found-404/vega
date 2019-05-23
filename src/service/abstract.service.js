@@ -1,4 +1,4 @@
-import {Icon, notification} from "antd";
+import { Toast } from "antd-mobile";
 import React from "react";
 import axios from 'axios';
 
@@ -63,11 +63,8 @@ export class AbstractService {
     };
 
     notice = (error) => {
-        notification.open({
-            message: '错误',
-            description: error,
-            icon: <Icon type="exclamation-circle" style={{color: '#e9262d'}}/>,
-        });
+      // ??????
+      Toast.fail(error, 1);
     };
 
     cleanArray = (actual) => {
