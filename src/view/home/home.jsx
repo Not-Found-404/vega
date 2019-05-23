@@ -4,7 +4,7 @@ import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card } from 'antd-mobi
 import './home.css';
 
 // 组件变量定义
-const data = [
+const shopData = [
   {
     img: 'https://zos.alipayobjects.com/rmsportal/dKbkpPXKfvZzWCM.png',
     title: 'Meet hotel',
@@ -13,7 +13,7 @@ const data = [
   {
     img: 'https://zos.alipayobjects.com/rmsportal/XmwCzSeJiqpkuMB.png',
     title: 'McDonald\'s invites you',
-    des: '不是所有的兼职汪都需要风吹日晒',
+    des: '金拱门',
   },
   {
     img: 'https://zos.alipayobjects.com/rmsportal/hfVtzEhPzTUewPm.png',
@@ -31,11 +31,10 @@ let rowIDs = [];
 function genData(pIndex = 0) {
   for (let i = 0; i < NUM_SECTIONS; i++) {
     const ii = (pIndex * NUM_SECTIONS) + i;
-    const sectionName = `Section ${ii}`;
+    const sectionName = `shopListSection ${ii}`;
     sectionIDs.push(sectionName);
     dataBlobs[sectionName] = sectionName;
     rowIDs[ii] = [];
-
     for (let jj = 0; jj < NUM_ROWS_PER_SECTION; jj++) {
       const rowName = `S${ii}, R${jj}`;
       rowIDs[ii].push(rowName);
@@ -81,20 +80,20 @@ export class Home extends React.Component {
         carouselData: ['AiyWuByWklrrUDlFignR', 'TekJlZRVCjLFexlOCuWn', 'IJOtIlfsYdTyaDTRVrLI'],
       });
     }, 100);
-    console.log("lv:", this.lv);
-    // 店铺列表加载
-    const hei = document.documentElement.clientHeight - ReactDOM.findDOMNode(this.lv).parentNode.offsetTop;
+
+    // 请求店铺列表数据
+    const shopListHeight = document.documentElement.clientHeight - ReactDOM.findDOMNode(this.lv).parentNode.offsetTop;
     setTimeout(() => {
       genData(); // 生成店铺列表数据
       this.setState({
         // 店铺列表数据加载
         shopListData: this.state.shopListData.cloneWithRowsAndSections(dataBlobs, sectionIDs, rowIDs),
         shopListIsLoading: false, // 店铺列表加载状态
-        height: hei,
+        height: shopListHeight,
       });
     }, 600);
   }
-
+  // 当所有的数据都已经渲染过，并且列表被滚动到距离最底部不足 onEndReachedThreshold 个像素的距离时调用
   onEndReached = (event) => {
     // load new data
     // hasMore: from backend data, indicates whether it is the last page, here is false
@@ -103,6 +102,7 @@ export class Home extends React.Component {
     }
     console.log('reach end', event);
     this.setState({ shopListIsLoading: true });
+    // 到达底部请求新的数据
     setTimeout(() => {
       genData(++pageIndex);
       this.setState({
@@ -113,10 +113,14 @@ export class Home extends React.Component {
   }
 
   render() {
-    // 如果提供了此属性，一个可渲染的组件会被渲染在每一行下面，除了小节标题的前面的最后一行。在其上方的小节ID和行ID，以及邻近的行是否被高亮会作为参数传递进来。
-    const separator = (sectionID, rowID) => (
+    /**
+     * 元素分隔符
+     * @param {number} sectionID - 小节ID
+     * @param {number} rowID - 行ID
+     */
+    const shopItemSeparator = (sectionID, rowID) => (
       <div
-        key={`${sectionID}-${rowID}`}
+        key={ `${sectionID} - ${rowID}` }
         style={{
           backgroundColor: '#F5F5F9',
           height: 8,
@@ -126,32 +130,57 @@ export class Home extends React.Component {
       />
     );
 
-    let index = data.length - 1;
+    let index = shopData.length - 1;
     // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
-    const rowRender = (rowData, sectionID, rowID) => {
+    const shopItemRender = (rowData, sectionID, rowID) => {
       console.log('渲染行数据源:\nrowData:', rowData, 'sectionId:', sectionID, 'rowId:', rowID);
       if (index < 0) {
-        index = data.length - 1;
+        index = shopData.length - 1;
       }
-      const obj = data[index--];
+      const shopItemData = shopData[index--];
       return (
-        <div key={rowID} style={{ padding: '0 15px' }}>
-          <div
-            style={{
-              lineHeight: '50px',
-              color: '#888',
-              fontSize: 18,
-              borderBottom: '1px solid #F6F6F6',
-            }}
-          >{obj.title}</div>
-          <div style={{ display: '-webkit-box', display: 'flex', padding: '15px 0' }}>
-            <img style={{ height: '64px', marginRight: '15px' }} src={obj.img} alt="" />
-            <div style={{ lineHeight: 1 }}>
-              <div style={{ marginBottom: '8px', fontWeight: 'bold' }}>{obj.des}</div>
-              <div><span style={{ fontSize: '30px', color: '#FF6E27' }}>35</span>¥ {rowID}</div>
+        <div key={rowID} className="shopList-item">
+          <div className="shopList-item__thumb">
+            <img
+              alt="shopImg" className="shopList-item__thumb-img"
+              src={shopItemData.img}
+            />
+          </div>
+          <div className="shopList-item__content">
+            <div className="shopList-item__content-title">
+              {shopItemData.des}
+            </div>
+            <div className="shopList-item__content-address">
+              山东省青岛市黄岛区薛家岛街道嘉陵江东路777号青岛理工大学
+            </div>
+            <div className="shopList-item__content-tags">
+              { shopItemTags() }
             </div>
           </div>
         </div>
+      );
+    };
+
+    /**
+     * 店铺元素标签内容
+     */
+    const shopItemTags = () => {
+      let shopTagRender = [];
+      return (
+        <dl className="shopList-item__content-tags__dl">
+          <dd className="shopList-item__content-tags__dd">
+            咖啡厅
+          </dd>
+          <dd className="shopList-item__content-tags__dd">
+            西餐厅
+          </dd>
+          <dd className="shopList-item__content-tags__dd">
+            小清新
+          </dd>
+          <dd className="shopList-item__content-tags__dd">
+            极客
+          </dd>
+        </dl>
       );
     };
 
@@ -242,25 +271,22 @@ export class Home extends React.Component {
                   </div>
                 )
               }
-              // 为每个小节(section)渲染一个标题
-              renderSectionHeader={sectionData => (
-                <div>{`Task ${sectionData.split(' ')[1]}`}</div>
-              )}
               // 自定义 body 的包裹组件
-              renderBodyComponent={() => <MyBody />}
+              renderBodyComponent={() => <ShopListBodyContainer />}
               // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
-              renderRow={ rowRender }
+              renderRow={ shopItemRender }
               // 如果提供了此属性，一个可渲染的组件会被渲染在每一行下面，除了小节标题的前面的最后一行。在其上方的小节ID和行ID，以及邻近的行是否被高亮会作为参数传递进来。
-              renderSeparator={separator}
+              renderSeparator={ shopItemSeparator }
               // ListView 样式
               style={{
                 height: this.state.height,
-                overflow: 'auto',
+                overflowY: 'auto',
+                overflowX: 'hidden',
               }}
               // 每次事件循环（每帧）渲染的行数
               pageSize={4}
               // 在滚动的过程中，每帧最多调用一次此回调函数。调用的频率可以用 scrollEventThrottle 属性来控制。
-              onScroll={() => { console.log('scroll'); }}
+              onScroll={() => { console.log('滚动事件触发'); }}
               // 当一个行接近屏幕范围多少像素之内的时候，就开始渲染这一行
               scrollRenderAheadDistance={500}
               // 当所有的数据都已经渲染过，并且列表被滚动到距离最底部不足 onEndReachedThreshold 个像素的距离时调用
@@ -279,10 +305,14 @@ export class Home extends React.Component {
   }
 }
 
-function MyBody(props) {
+/**
+ * 店铺列表容器
+ */
+function ShopListBodyContainer(props) {
   return (
-    <div className="am-list-body my-body">
-      <span style={{ display: 'none' }}>you can custom body wrap element</span>
+    // 渲染自定义的区块包裹组件
+    <div className="shopList-container">
+      {/** 渲染组件容器-子节点 */}
       {props.children}
     </div>
   );
