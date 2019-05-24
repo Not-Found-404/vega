@@ -7,6 +7,7 @@ import PropTypes from "prop-types";
 import { Home } from "../home/home";
 import { Order } from "../order/order";
 import { My } from "../my/my";
+import { UserWebService } from '../../service/user/user.web.service'
 import './main.css';
 
 export class MainLayout extends React.Component {
@@ -20,6 +21,8 @@ export class MainLayout extends React.Component {
 }
 
 class Main extends React.Component {
+  // 组件参数
+  userWebService = new UserWebService();
 
   constructor(props) {
     super(props);
@@ -41,6 +44,17 @@ class Main extends React.Component {
     this.changeRoute();
     // 默认路由跳转
     this.props.history.push('/home');
+    // 登录用户
+    this.userWebService.login(
+      {
+        params: {
+          mobile: "17864293685",
+          password: "1",
+          type: 2
+        },
+        success: (data) => { }
+      }
+    );
   }
 
   /**
