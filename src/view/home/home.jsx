@@ -1,33 +1,11 @@
 import React from 'react';
-import ReactDOM from 'react-dom'
+import ReactDOM from 'react-dom';
 import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card } from 'antd-mobile';
 import { ShopWebService } from '../../service/shop/shop.web.service';
 import './home.css';
 
-const NUM_SECTIONS = 5;
-const NUM_ROWS_PER_SECTION = 5;
-let pageIndex = 0;
-
-const dataBlobs = {};
-let sectionIDs = [];
-let rowIDs = [];
-function genData(pIndex = 0) {
-  if( pIndex === 0 ){
-    sectionIDs.push('shopListSection 1');
-    rowIDs.push([]);
-    dataBlobs['shopListSection 1'] = 'shopListSection 1';
-  }
-  for( let i = 0; i < NUM_SECTIONS; i ++ ){
-    const rowNumber = ( pIndex * NUM_ROWS_PER_SECTION ) + i;
-    const rowName = `Sextion:1, Row:${rowNumber}`;
-    rowIDs[0].push(rowName);
-    dataBlobs[rowName] = rowName;
-  }
-  console.log(dataBlobs);
-  sectionIDs = [...sectionIDs];
-  rowIDs = [...rowIDs];
-  console.log('SectionIDs:', sectionIDs, '\nRowIDs:', rowIDs);
-}
+// 常量
+const NUM_ROWS_PER_SECTION = 5;  // 每个 Section 的 Row 数量
 
 export class Home extends React.Component {
   // 组件参数
@@ -53,26 +31,17 @@ export class Home extends React.Component {
       imgHeight: 176, // 跑马灯图片高度
       shopListData, // 店铺列表数据
       shopListIsLoading: true, // 店铺列表加载状态
-      height: document.documentElement.clientHeight * 3 / 4, // 店铺列表图片高度
-      shopData : [
-        {
-          img: 'https://zos.alipayobjects.com/rmsportal/dKbkpPXKfvZzWCM.png',
-          title: 'Meet hotel',
-          des: '不是所有的兼职汪都需要风吹日晒',
-        },
-        {
-          img: 'https://zos.alipayobjects.com/rmsportal/XmwCzSeJiqpkuMB.png',
-          title: 'McDonald\'s invites you',
-          des: '金拱门',
-        },
-        {
-          img: 'https://zos.alipayobjects.com/rmsportal/hfVtzEhPzTUewPm.png',
-          title: 'Eat the week',
-          des: '不是所有的兼职汪都需要风吹日晒',
-        },
-      ],
-      shopListViewData: [],
-      shopListTotalNumber: 0,
+      shopListHeight: document.documentElement.clientHeight * 3 / 4, // 店铺列表图片高度
+      /* 店铺列表请求数据控制 - start */
+      pageIndex: 1,               // shopList 页面索引
+      shopListTotalNumber: 0,     // shopList 数据总量
+      shopListDataHasMore: false, // shopList 请求数据有无更多
+      /* 店铺列表请求数据控制 - end */
+      shopListViewData: [],       // shopList 视图数据
+      shopListDataBlobs: {},      // shopList 数据驶入映射
+      shopListSectionIDs: [],     // shopList SectionID
+      shopListRowIDs: [],         // shopList RowsIDs
+      dataBlobs: {},
     }
 
     // 绑定 this
@@ -88,19 +57,6 @@ export class Home extends React.Component {
         carouselData: ['AiyWuByWklrrUDlFignR', 'TekJlZRVCjLFexlOCuWn', 'IJOtIlfsYdTyaDTRVrLI'],
       });
     }, 100);
-
-    // 请求店铺列表数据
-    const shopListHeight = document.documentElement.clientHeight - ReactDOM.findDOMNode(this.lv).parentNode.offsetTop;
-    setTimeout(() => {
-      genData(); // 生成店铺列表数据
-      this.setState({
-        // 店铺列表数据加载
-        shopListData: this.state.shopListData.cloneWithRowsAndSections(dataBlobs, sectionIDs, rowIDs),
-        shopListIsLoading: false, // 店铺列表加载状态
-        height: shopListHeight,
-      });
-    }, 600);
-
     // 店铺列表数据初始化
     this.getShopListData();
   }
@@ -111,39 +67,92 @@ export class Home extends React.Component {
     if (this.state.shopListIsLoading && !this.state.hasMore) {
       return;
     }
-    console.log('reach end', event);
-    this.setState({ shopListIsLoading: true });
+    this.setState({ pageIndex: this.state.pageIndex + 1 });
     // 到达底部请求新的数据
-    setTimeout(() => {
-      genData(++pageIndex);
-      this.setState({
-        shopListData: this.state.shopListData.cloneWithRowsAndSections(dataBlobs, sectionIDs, rowIDs),
-        shopListIsLoading: false,
-      });
-    }, 1000);
+    this.getShopListData();
   }
 
   /**
-   * 获取店铺列表信息
+   * 获取店铺列表信息 - 列表每次到达底部调用一次
    */
-  getShopListData(pageIndex = 1){
+  getShopListData() {
+    console.log('当前页码:', this.state.pageIndex);
+    let pageIndex = this.state.pageIndex;
+    let totalPageNum,  // 数据总页数
+        shopListTotalNumber = this.state.shopListTotalNumber; // 数据总量
+    // 判断店铺列表总数量是否为0
+    if ( shopListTotalNumber !== 0 ){
+      totalPageNum = Math.ceil(shopListTotalNumber / NUM_ROWS_PER_SECTION);
+    } else {
+      totalPageNum = 1;
+    }
+    // 设置正在请求状态
+    this.setState({
+      shopListIsLoading: true,
+    });
+    /**
+     * 请求数据处理
+     */
+    let processData = (res) => {
+      console.log(res);
+      // 处理店铺列表源数据
+      let shopListViewData = this.state.shopListViewData;
+      if (res.data.length > 0){
+        shopListViewData = shopListViewData.concat(res.data);
+        this.setState({
+          shopListDataHasMore: true,
+        });
+      } else {
+        // 设置当前无更多数据
+        this.setState({
+          shopListDataHasMore: false,
+          shopListIsLoading: false,
+        });
+        return;
+      }
+      // 处理店铺列表数据映射
+      let sectionIDs = this.state.shopListSectionIDs;
+      let rowIDs = this.state.shopListRowIDs;
+      let dataBlobs = this.state.dataBlobs;
+      if (pageIndex === 1) {
+        sectionIDs.push('shopListSection 1');
+        rowIDs.push([]);
+        dataBlobs['shopListSection 1'] = 'shopListSection 1';
+      }
+      if( pageIndex <= totalPageNum ) {
+        // 请求下一个分页
+        for ( let rowIndex = (pageIndex - 1) * NUM_ROWS_PER_SECTION;
+          rowIndex < (pageIndex * NUM_ROWS_PER_SECTION) - totalPageNum % NUM_ROWS_PER_SECTION;
+          rowIndex++
+        ){
+          // 装载数据索引映射
+          rowIDs[0].push(rowIndex);
+          dataBlobs[rowIndex] = rowIndex;
+        }
+      };
+      console.log('sectionIDs:', sectionIDs, '\nrowIDs:', rowIDs);
+      // 存储数据
+      this.setState(
+        {
+          shopListViewData: shopListViewData,
+          shopListTotalNumber: res.total,
+          shopListIsLoading: false,
+          dataBlobs: dataBlobs,
+          shopListData: this.state.shopListData.cloneWithRowsAndSections(dataBlobs, sectionIDs, rowIDs), // ReactNative 克隆视图数据
+        }
+      );
+    }
+
+    /**
+     * 请求店铺列表信息数据
+     */
     this.shopWebService.shopPaging(
       {
         params: {
           pageNo: pageIndex,
           pageSize: 5,
         },
-        success: (res) => {
-          console.log(res);
-          let shopListViewData = this.state.shopListViewData;
-          shopListViewData = shopListViewData.concat(res.data);
-          this.setState(
-            {
-              shopListViewData: shopListViewData,
-              shopListTotalNumber: res.total,
-            }
-          );
-        }
+        success: processData,
       }
     );
   }
@@ -156,7 +165,7 @@ export class Home extends React.Component {
      */
     const shopItemSeparator = (sectionID, rowID) => (
       <div
-        key={ `${sectionID} - ${rowID}` }
+        key={`${sectionID} - ${rowID}`}
         style={{
           backgroundColor: '#F5F5F9',
           height: 8,
@@ -167,32 +176,35 @@ export class Home extends React.Component {
     );
 
 
-    let index = this.state.shopData.length - 1;
+    // let index = this.state.shopData.length - 1;
+
     // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
     const shopItemRender = (rowData, sectionID, rowID) => {
       console.log('渲染行数据源:\nrowData:', rowData, 'sectionId:', sectionID, 'rowId:', rowID);
-      if (index < 0) {
-        index = this.state.shopData.length - 1;
-      }
-      const shopItemData = this.state.shopData[index--];
-      console.log('index:',index);
+      // if (index < 0) {
+      //   index = this.state.shopData.length - 1;
+      // }
+      // const shopItemData = this.state.shopData[index--];
+      // console.log('index:', index);
+      let shopItemData = this.state.shopListViewData[rowID];
+
       return (
         <div key={rowID} className="shopList-item">
           <div className="shopList-item__thumb">
             <img
               alt="shopImg" className="shopList-item__thumb-img"
-              src={shopItemData.img}
+              src={shopItemData.imageUrl}
             />
           </div>
           <div className="shopList-item__content">
             <div className="shopList-item__content-title">
-              {shopItemData.des}
+              {shopItemData.name}
             </div>
             <div className="shopList-item__content-address">
               山东省青岛市黄岛区薛家岛街道嘉陵江东路777号青岛理工大学
             </div>
             <div className="shopList-item__content-tags">
-              { shopItemTags() }
+              {shopItemTags(shopItemData.tagThinResponse)}
             </div>
           </div>
         </div>
@@ -204,20 +216,16 @@ export class Home extends React.Component {
      */
     const shopItemTags = (tagsData) => {
       let shopTagRender = [];
+      tagsData.forEach(
+        (element) => {
+          shopTagRender.push(
+            <dd key={element.tagId} className="shopList-item__content-tags__dd">{element.name}</dd>
+          );
+        }
+      );
       return (
         <dl className="shopList-item__content-tags__dl">
-          <dd className="shopList-item__content-tags__dd">
-            咖啡厅
-          </dd>
-          <dd className="shopList-item__content-tags__dd">
-            西餐厅
-          </dd>
-          <dd className="shopList-item__content-tags__dd">
-            小清新
-          </dd>
-          <dd className="shopList-item__content-tags__dd">
-            极客
-          </dd>
+          {shopTagRender}
         </dl>
       );
     };
@@ -305,19 +313,19 @@ export class Home extends React.Component {
               renderFooter={() =>
                 (
                   <div style={{ padding: 30, textAlign: 'center' }}>
-                    {this.state.shopListIsLoading ? '加载中...' : '加载完成'}
+                    { (this.state.shopListIsLoading && this.state.shopListDataHasMore) ? '加载中...' : '加载完成'}
                   </div>
                 )
               }
               // 自定义 body 的包裹组件
               renderBodyComponent={() => <ShopListBodyContainer />}
               // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
-              renderRow={ shopItemRender }
+              renderRow={shopItemRender}
               // 如果提供了此属性，一个可渲染的组件会被渲染在每一行下面，除了小节标题的前面的最后一行。在其上方的小节ID和行ID，以及邻近的行是否被高亮会作为参数传递进来。
-              renderSeparator={ shopItemSeparator }
+              renderSeparator={shopItemSeparator}
               // ListView 样式
               style={{
-                height: this.state.height,
+                height: this.state.shopListHeight,
                 overflowY: 'auto',
                 overflowX: 'hidden',
               }}
