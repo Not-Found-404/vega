@@ -42,11 +42,12 @@ export class Home extends React.Component {
       shopListSectionIDs: [],     // shopList SectionID
       shopListRowIDs: [],         // shopList RowsIDs
       dataBlobs: {},
+      shopListItemHeight: 0,      // shopList 每个元素的高度
     }
 
     // 绑定 this
     this.getShopListData = this.getShopListData.bind(this);
-
+    this.getShopListItemHeight = this.getShopListItemHeight.bind(this);
   }
 
   // 组件生命周期 - 组件挂载
@@ -64,7 +65,7 @@ export class Home extends React.Component {
       }
     );
     let clientHeight = document.documentElement.clientHeight;
-    let offsetHeight = 210 + CAROUSEL_IMG_HEIGHT;
+    let offsetHeight = 203 + CAROUSEL_IMG_HEIGHT;
     let height = clientHeight - offsetHeight;
     this.setState(
       {
@@ -135,8 +136,15 @@ export class Home extends React.Component {
       }
       if (pageIndex <= totalPageNum) {
         // 请求下一个分页
+        let rowIndexLimit;
+        if( pageIndex === Math.ceil(res.total/NUM_ROWS_PER_SECTION) ){
+          rowIndexLimit = res.total % NUM_ROWS_PER_SECTION;
+        } else {
+          rowIndexLimit = NUM_ROWS_PER_SECTION;
+        }
+        console.log('RowIndexLimit:', rowIndexLimit);
         for (let rowIndex = (pageIndex - 1) * NUM_ROWS_PER_SECTION;
-          rowIndex < (pageIndex * NUM_ROWS_PER_SECTION) - totalPageNum % NUM_ROWS_PER_SECTION;
+          rowIndex < ((pageIndex - 1) * NUM_ROWS_PER_SECTION) + rowIndexLimit;
           rowIndex++
         ) {
           // 装载数据索引映射
@@ -145,12 +153,6 @@ export class Home extends React.Component {
         }
       };
       console.log('sectionIDs:', sectionIDs, '\nrowIDs:', rowIDs);
-
-      // 计算当前渲染的列表高度，从而动态改变店铺列表的滚动高度
-      // let shopListItemHeight = ReactDOM.findDOMNode(this.refs.shopListItem);
-      // if(){
-
-      // }
       // 存储数据
       this.setState(
         {
@@ -159,9 +161,31 @@ export class Home extends React.Component {
           shopListIsLoading: false,
           dataBlobs: dataBlobs,
           shopListData: this.state.shopListData.cloneWithRowsAndSections(dataBlobs, sectionIDs, rowIDs), // ReactNative 克隆视图数据
-          // shopListHeight:
         }
       );
+      // 计算当前渲染的列表高度，从而动态改变店铺列表的滚动高度
+      let clientHeight = document.documentElement.clientHeight - 50;
+      let shopListInitHeight  = clientHeight - (155 + CAROUSEL_IMG_HEIGHT);
+      let shopListItemNumber = this.state.shopListViewData.length;
+      let shopListRenderHeight = (shopListItemNumber * this.state.shopListItemHeight) +
+        ( shopListItemNumber * 8 ) + 35;
+
+      console.log('Init:', shopListInitHeight, 'Render:', shopListRenderHeight, 'Client:', clientHeight);
+
+      if( shopListRenderHeight <= clientHeight ){
+        this.setState(
+          {
+            shopListHeight: shopListInitHeight > shopListRenderHeight ? shopListInitHeight : shopListRenderHeight - 3,
+          }
+        );
+      } else {
+        this.setState(
+          {
+            shopListHeight: clientHeight,
+          }
+        );
+      }
+
     }
 
     /**
@@ -171,9 +195,21 @@ export class Home extends React.Component {
       {
         params: {
           pageNo: pageIndex,
-          pageSize: 5,
+          pageSize: NUM_ROWS_PER_SECTION,
         },
         success: processData,
+      }
+    );
+  }
+
+  /**
+   * 获取shopList元素渲染后的高度，并进行高度记录
+   */
+  getShopListItemHeight(currentHeight) {
+    // 更新当前高度
+    this.setState(
+      {
+        shopListItemHeight: currentHeight
       }
     );
   }
@@ -203,6 +239,7 @@ export class Home extends React.Component {
         <ShopListRowItemRender
           rowData={rowData} sectionID={sectionID} rowID={rowID}
           shopItemData={this.state.shopListViewData[rowID]}
+          getShopListItemHeight={this.getShopListItemHeight}
         />
       );
     };
@@ -306,7 +343,7 @@ export class Home extends React.Component {
                 overflowX: 'hidden',
               }}
               // 每次事件循环（每帧）渲染的行数
-              pageSize={4}
+              pageSize={5}
               // 在滚动的过程中，每帧最多调用一次此回调函数。调用的频率可以用 scrollEventThrottle 属性来控制。
               onScroll={() => { console.log('滚动事件触发'); }}
               // 当一个行接近屏幕范围多少像素之内的时候，就开始渲染这一行
@@ -314,7 +351,7 @@ export class Home extends React.Component {
               // 当所有的数据都已经渲染过，并且列表被滚动到距离最底部不足 onEndReachedThreshold 个像素的距离时调用
               onEndReached={this.onEndReached}
               // 调用 onEndReached 之前的临界值
-              onEndReachedThreshold={10}
+              onEndReachedThreshold={1000}
             />
 
           </Card.Body>
@@ -355,7 +392,7 @@ class ShopListRowItemRender extends React.Component {
   }
 
   componentDidMount(){
-    console.log('DOM 元素高度:', this.shopListItem.current.clientHeight);
+    this.props.getShopListItemHeight(this.shopListItem.current.clientHeight);
   }
 
   /**
