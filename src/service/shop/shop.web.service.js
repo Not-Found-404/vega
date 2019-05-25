@@ -16,4 +16,17 @@ export class ShopWebService extends ShopCommonService {
             request: request
         });
     }
+
+    /**
+     * 获取店铺广告图数据
+     * @param request
+     */
+    shopBanner = (request) => {
+      this.get(
+        {
+          url: '/api/web/banner/get/mobile',
+          request: request
+        }
+      );
+    }
 }
