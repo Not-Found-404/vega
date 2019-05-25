@@ -16,8 +16,17 @@
   border-radius: 50%;
   background-color: rgb(54, 194, 36);
 }
-.card-body{
+/* 重写 Card 样式 */
+.shopList-card{
+  background-color: transparent;
   padding: 0;
+}
+.shopList-card__header{
+  background-color:  rgb(255, 255, 255);
+}
+.shopList-card__body{
+  padding: 0;
+  background-color:  rgb(255, 255, 255);
 }
 .shop-item{
   height: 10em;
@@ -96,4 +105,15 @@
 .shopList-item__content-tags__dl>.shopList-item__content-tags__dd:not(:nth-child(1)){
   padding-left: 0.5em;
   border-left: 1px solid rgba(187, 187, 187, 1);
+}
+.shopList-footer{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  height: 35px;
+}
+/* 重写 ListView footer 样式 */
+.am-list-footer{
+  padding: 0;
 }
