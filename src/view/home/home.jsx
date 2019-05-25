@@ -30,7 +30,7 @@ export class Home extends React.Component {
     });
 
     this.state = {
-      carouselData: ['1', '2', '3'], // 跑马灯图片数据
+      carouselData: [], // 跑马灯图片数据
       shopListData, // 店铺列表数据
       shopListIsLoading: true, // 店铺列表加载状态
       shopListHeight: 0, // 店铺列表图片高度
@@ -214,7 +214,10 @@ export class Home extends React.Component {
     this.shopWebService.shopBanner({
       params: null,
       success: (res) => {
-        console.log('走马灯数据:', res);
+        console.log('轮播图数据:', res);
+        this.setState({
+          carouselData: res.list,
+        });
       },
     });
   }
@@ -251,24 +254,25 @@ export class Home extends React.Component {
 
     return (
       <div className="home-layout">
-        {/* 跑马灯轮播图 */}
+        {/* 走马灯轮播图 */}
         <div className="home-carousel">
           <Carousel
-            autoplay={true}
+            autoplay={ true }
             infinite
             beforeChange={(from, to) => console.log(`slide from ${from} to ${to}`)}
             afterChange={index => console.log('slide to', index)}
+            style={{height: CAROUSEL_IMG_HEIGHT}} /* 设置走马灯容器高度，即使没有图片也保持高度 */
           >
             {/* 渲染走马灯数据 */}
             {this.state.carouselData.map(element => (
               <a
-                key={element}
-                href="http://www.alipay.com"
+                key={element.bannerId}
+                href="./"
                 style={{ display: 'inline-block', width: '100%', height: CAROUSEL_IMG_HEIGHT }}
               >
                 <img
-                  src={`https://zos.alipayobjects.com/rmsportal/${element}.png`}
-                  alt=""
+                  src={element.imageUrl}
+                  alt={element.name}
                   style={{ width: '100%', verticalAlign: 'top', height: CAROUSEL_IMG_HEIGHT }}
                   onLoad={() => {
                     // fire window resize event to change height
