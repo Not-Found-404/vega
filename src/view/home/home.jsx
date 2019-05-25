@@ -6,6 +6,7 @@ import './home.css';
 
 // 常量
 const NUM_ROWS_PER_SECTION = 5;  // 每个 Section 的 Row 数量
+const CAROUSEL_IMG_HEIGHT = 230;
 
 export class Home extends React.Component {
   // 组件参数
@@ -28,10 +29,9 @@ export class Home extends React.Component {
 
     this.state = {
       carouselData: ['1', '2', '3'], // 跑马灯图片数据
-      imgHeight: 176, // 跑马灯图片高度
       shopListData, // 店铺列表数据
       shopListIsLoading: true, // 店铺列表加载状态
-      shopListHeight: document.documentElement.clientHeight * 3 / 4, // 店铺列表图片高度
+      shopListHeight: 0, // 店铺列表图片高度
       /* 店铺列表请求数据控制 - start */
       pageIndex: 1,               // shopList 页面索引
       shopListTotalNumber: 0,     // shopList 数据总量
@@ -42,11 +42,12 @@ export class Home extends React.Component {
       shopListSectionIDs: [],     // shopList SectionID
       shopListRowIDs: [],         // shopList RowsIDs
       dataBlobs: {},
+      shopListItemHeight: 0,      // shopList 每个元素的高度
     }
 
     // 绑定 this
     this.getShopListData = this.getShopListData.bind(this);
-
+    this.getShopListItemHeight = this.getShopListItemHeight.bind(this);
   }
 
   // 组件生命周期 - 组件挂载
@@ -57,14 +58,28 @@ export class Home extends React.Component {
         carouselData: ['AiyWuByWklrrUDlFignR', 'TekJlZRVCjLFexlOCuWn', 'IJOtIlfsYdTyaDTRVrLI'],
       });
     }, 100);
-    // 店铺列表数据初始化
+    // 初始化店铺列表高度
+    this.setState(
+      {
+        shopListHeight: document.documentElement.clientHeight * 3 / 4, // 店铺列表图片高度
+      }
+    );
+    let clientHeight = document.documentElement.clientHeight;
+    let offsetHeight = 203 + CAROUSEL_IMG_HEIGHT;
+    let height = clientHeight - offsetHeight;
+    this.setState(
+      {
+        shopListHeight: height,
+      }
+    );
     this.getShopListData();
   }
-  // 当所有的数据都已经渲染过，并且列表被滚动到距离最底部不足 onEndReachedThreshold 个像素的距离时调用
+  /**
+   * 当所有的数据都已经渲染过，并且列表被滚动到距离最底部不足 onEndReachedThreshold 个像素的距离时调用
+  **/
   onEndReached = (event) => {
-    // load new data
-    // hasMore: from backend data, indicates whether it is the last page, here is false
-    if (this.state.shopListIsLoading && !this.state.hasMore) {
+    // 如果当前正在加载或者没有更多数据，那么不再请求数据
+    if (this.state.shopListIsLoading || !this.state.shopListDataHasMore) {
       return;
     }
     this.setState({ pageIndex: this.state.pageIndex + 1 });
@@ -79,9 +94,9 @@ export class Home extends React.Component {
     console.log('当前页码:', this.state.pageIndex);
     let pageIndex = this.state.pageIndex;
     let totalPageNum,  // 数据总页数
-        shopListTotalNumber = this.state.shopListTotalNumber; // 数据总量
+      shopListTotalNumber = this.state.shopListTotalNumber; // 数据总量
     // 判断店铺列表总数量是否为0
-    if ( shopListTotalNumber !== 0 ){
+    if (shopListTotalNumber !== 0) {
       totalPageNum = Math.ceil(shopListTotalNumber / NUM_ROWS_PER_SECTION);
     } else {
       totalPageNum = 1;
@@ -97,7 +112,7 @@ export class Home extends React.Component {
       console.log(res);
       // 处理店铺列表源数据
       let shopListViewData = this.state.shopListViewData;
-      if (res.data.length > 0){
+      if (res.data.length > 0) {
         shopListViewData = shopListViewData.concat(res.data);
         this.setState({
           shopListDataHasMore: true,
@@ -119,12 +134,19 @@ export class Home extends React.Component {
         rowIDs.push([]);
         dataBlobs['shopListSection 1'] = 'shopListSection 1';
       }
-      if( pageIndex <= totalPageNum ) {
+      if (pageIndex <= totalPageNum) {
         // 请求下一个分页
-        for ( let rowIndex = (pageIndex - 1) * NUM_ROWS_PER_SECTION;
-          rowIndex < (pageIndex * NUM_ROWS_PER_SECTION) - totalPageNum % NUM_ROWS_PER_SECTION;
+        let rowIndexLimit;
+        if( pageIndex === Math.ceil(res.total/NUM_ROWS_PER_SECTION) ){
+          rowIndexLimit = res.total % NUM_ROWS_PER_SECTION;
+        } else {
+          rowIndexLimit = NUM_ROWS_PER_SECTION;
+        }
+        console.log('RowIndexLimit:', rowIndexLimit);
+        for (let rowIndex = (pageIndex - 1) * NUM_ROWS_PER_SECTION;
+          rowIndex < ((pageIndex - 1) * NUM_ROWS_PER_SECTION) + rowIndexLimit;
           rowIndex++
-        ){
+        ) {
           // 装载数据索引映射
           rowIDs[0].push(rowIndex);
           dataBlobs[rowIndex] = rowIndex;
@@ -141,6 +163,29 @@ export class Home extends React.Component {
           shopListData: this.state.shopListData.cloneWithRowsAndSections(dataBlobs, sectionIDs, rowIDs), // ReactNative 克隆视图数据
         }
       );
+      // 计算当前渲染的列表高度，从而动态改变店铺列表的滚动高度
+      let clientHeight = document.documentElement.clientHeight - 50;
+      let shopListInitHeight  = clientHeight - (155 + CAROUSEL_IMG_HEIGHT);
+      let shopListItemNumber = this.state.shopListViewData.length;
+      let shopListRenderHeight = (shopListItemNumber * this.state.shopListItemHeight) +
+        ( shopListItemNumber * 8 ) + 35;
+
+      console.log('Init:', shopListInitHeight, 'Render:', shopListRenderHeight, 'Client:', clientHeight);
+
+      if( shopListRenderHeight <= clientHeight ){
+        this.setState(
+          {
+            shopListHeight: shopListInitHeight > shopListRenderHeight ? shopListInitHeight : shopListRenderHeight - 3,
+          }
+        );
+      } else {
+        this.setState(
+          {
+            shopListHeight: clientHeight,
+          }
+        );
+      }
+
     }
 
     /**
@@ -150,9 +195,21 @@ export class Home extends React.Component {
       {
         params: {
           pageNo: pageIndex,
-          pageSize: 5,
+          pageSize: NUM_ROWS_PER_SECTION,
         },
         success: processData,
+      }
+    );
+  }
+
+  /**
+   * 获取shopList元素渲染后的高度，并进行高度记录
+   */
+  getShopListItemHeight(currentHeight) {
+    // 更新当前高度
+    this.setState(
+      {
+        shopListItemHeight: currentHeight
       }
     );
   }
@@ -175,58 +232,15 @@ export class Home extends React.Component {
       />
     );
 
-
-    // let index = this.state.shopData.length - 1;
-
     // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
     const shopItemRender = (rowData, sectionID, rowID) => {
       console.log('渲染行数据源:\nrowData:', rowData, 'sectionId:', sectionID, 'rowId:', rowID);
-      // if (index < 0) {
-      //   index = this.state.shopData.length - 1;
-      // }
-      // const shopItemData = this.state.shopData[index--];
-      // console.log('index:', index);
-      let shopItemData = this.state.shopListViewData[rowID];
-
       return (
-        <div key={rowID} className="shopList-item">
-          <div className="shopList-item__thumb">
-            <img
-              alt="shopImg" className="shopList-item__thumb-img"
-              src={shopItemData.imageUrl}
-            />
-          </div>
-          <div className="shopList-item__content">
-            <div className="shopList-item__content-title">
-              {shopItemData.name}
-            </div>
-            <div className="shopList-item__content-address">
-              山东省青岛市黄岛区薛家岛街道嘉陵江东路777号青岛理工大学
-            </div>
-            <div className="shopList-item__content-tags">
-              {shopItemTags(shopItemData.tagThinResponse)}
-            </div>
-          </div>
-        </div>
-      );
-    };
-
-    /**
-     * 店铺元素标签内容
-     */
-    const shopItemTags = (tagsData) => {
-      let shopTagRender = [];
-      tagsData.forEach(
-        (element) => {
-          shopTagRender.push(
-            <dd key={element.tagId} className="shopList-item__content-tags__dd">{element.name}</dd>
-          );
-        }
-      );
-      return (
-        <dl className="shopList-item__content-tags__dl">
-          {shopTagRender}
-        </dl>
+        <ShopListRowItemRender
+          rowData={rowData} sectionID={sectionID} rowID={rowID}
+          shopItemData={this.state.shopListViewData[rowID]}
+          getShopListItemHeight={this.getShopListItemHeight}
+        />
       );
     };
 
@@ -244,16 +258,15 @@ export class Home extends React.Component {
               <a
                 key={val}
                 href="http://www.alipay.com"
-                style={{ display: 'inline-block', width: '100%', height: this.state.imgHeight }}
+                style={{ display: 'inline-block', width: '100%', height: CAROUSEL_IMG_HEIGHT }}
               >
                 <img
                   src={`https://zos.alipayobjects.com/rmsportal/${val}.png`}
                   alt=""
-                  style={{ width: '100%', verticalAlign: 'top' }}
+                  style={{ width: '100%', verticalAlign: 'top', height: CAROUSEL_IMG_HEIGHT }}
                   onLoad={() => {
                     // fire window resize event to change height
                     window.dispatchEvent(new Event('resize'));
-                    this.setState({ imgHeight: 'auto' });
                   }}
                 />
               </a>
@@ -299,9 +312,9 @@ export class Home extends React.Component {
         <WhiteSpace size="md" />
         {/* 店铺列表区域 */}
 
-        <Card full>
-          <Card.Header title="好店推荐" />
-          <Card.Body className="card-body">
+        <Card full className="shopList-card">
+          <Card.Header className="shopList-card__header" title="好店推荐" />
+          <Card.Body className="shopList-card__body">
 
             {/* 店铺列表 - ListView */}
             <ListView
@@ -312,8 +325,8 @@ export class Home extends React.Component {
               // 渲染页脚
               renderFooter={() =>
                 (
-                  <div style={{ padding: 30, textAlign: 'center' }}>
-                    { (this.state.shopListIsLoading && this.state.shopListDataHasMore) ? '加载中...' : '加载完成'}
+                  <div className="shopList-footer">
+                    {(this.state.shopListIsLoading && this.state.shopListDataHasMore) ? '加载中...' : '加载完成'}
                   </div>
                 )
               }
@@ -330,7 +343,7 @@ export class Home extends React.Component {
                 overflowX: 'hidden',
               }}
               // 每次事件循环（每帧）渲染的行数
-              pageSize={4}
+              pageSize={5}
               // 在滚动的过程中，每帧最多调用一次此回调函数。调用的频率可以用 scrollEventThrottle 属性来控制。
               onScroll={() => { console.log('滚动事件触发'); }}
               // 当一个行接近屏幕范围多少像素之内的时候，就开始渲染这一行
@@ -338,7 +351,7 @@ export class Home extends React.Component {
               // 当所有的数据都已经渲染过，并且列表被滚动到距离最底部不足 onEndReachedThreshold 个像素的距离时调用
               onEndReached={this.onEndReached}
               // 调用 onEndReached 之前的临界值
-              onEndReachedThreshold={10}
+              onEndReachedThreshold={1000}
             />
 
           </Card.Body>
@@ -362,4 +375,69 @@ function ShopListBodyContainer(props) {
       {props.children}
     </div>
   );
+}
+
+/**
+ * 店铺列表元素-渲染行元素
+ */
+class ShopListRowItemRender extends React.Component {
+  constructor(props) {
+    super(props);
+
+    // 创建 ref
+    this.shopListItem = React.createRef();
+
+    // 绑定 this
+    this.shopItemTags = this.shopItemTags.bind(this);
+  }
+
+  componentDidMount(){
+    this.props.getShopListItemHeight(this.shopListItem.current.clientHeight);
+  }
+
+  /**
+     * 店铺元素标签内容-函数组件
+     */
+  shopItemTags = (tagsData) => {
+    let shopTagRender = [];
+    tagsData.forEach(
+      (element) => {
+        shopTagRender.push(
+          <dd key={element.tagId} className="shopList-item__content-tags__dd">{element.name}</dd>
+        );
+      }
+    );
+    return (
+      <dl className="shopList-item__content-tags__dl">
+        {shopTagRender}
+      </dl>
+    );
+  };
+
+  render() {
+    return (
+      <div
+        ref={this.shopListItem} key={this.props.rowID}
+        className="shopList-item"
+      >
+        <div className="shopList-item__thumb">
+          <img
+            alt="shopImg" className="shopList-item__thumb-img"
+            src={this.props.shopItemData.imageUrl}
+          />
+        </div>
+        <div className="shopList-item__content">
+          <div className="shopList-item__content-title">
+            {this.props.shopItemData.name}
+          </div>
+          <div className="shopList-item__content-address">
+            {this.props.shopItemData.address}
+            </div>
+          <div className="shopList-item__content-tags">
+            {this.shopItemTags(this.props.shopItemData.tagThinResponse)}
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
