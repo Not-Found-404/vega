@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card } from 'antd-mobile';
+import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card, SearchBar } from 'antd-mobile';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUser, faClipboardList, faShoppingCart, faSearch } from '@fortawesome/free-solid-svg-icons'
 import { ShopWebService } from '../../service/shop/shop.web.service';
@@ -254,6 +254,7 @@ export class Home extends React.Component {
 
     return (
       <div className="home-layout">
+        <SearchGoods />
         {/* 走马灯轮播图 */}
         <div className="home-carousel">
           <Carousel
@@ -451,6 +452,23 @@ class ShopListRowItemRender extends React.Component {
             {this.shopItemTags(this.props.shopItemData.tagThinResponse)}
           </div>
         </div>
+      </div>
+    );
+  }
+}
+
+class SearchGoods extends React.Component {
+  constructor(props){
+    super(props);
+  }
+
+
+  render(){
+    return (
+      <div className="search-layout">
+        <WhiteSpace size="xs"/>
+        <SearchBar placeholder="搜索商品" />
+        <WhiteSpace size="xs" />
       </div>
     );
   }
