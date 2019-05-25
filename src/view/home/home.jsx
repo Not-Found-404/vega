@@ -1,12 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card } from 'antd-mobile';
+import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card, SearchBar } from 'antd-mobile';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faUser, faClipboardList, faShoppingCart, faSearch } from '@fortawesome/free-solid-svg-icons'
 import { ShopWebService } from '../../service/shop/shop.web.service';
 import './home.css';
 
 // 常量
 const NUM_ROWS_PER_SECTION = 5;  // 每个 Section 的 Row 数量
-const CAROUSEL_IMG_HEIGHT = 230;
+const CAROUSEL_IMG_HEIGHT = 230; // 默认走马灯图片高度
 
 export class Home extends React.Component {
   // 组件参数
@@ -28,7 +30,7 @@ export class Home extends React.Component {
     });
 
     this.state = {
-      carouselData: ['1', '2', '3'], // 跑马灯图片数据
+      carouselData: [], // 跑马灯图片数据
       shopListData, // 店铺列表数据
       shopListIsLoading: true, // 店铺列表加载状态
       shopListHeight: 0, // 店铺列表图片高度
@@ -48,22 +50,13 @@ export class Home extends React.Component {
     // 绑定 this
     this.getShopListData = this.getShopListData.bind(this);
     this.getShopListItemHeight = this.getShopListItemHeight.bind(this);
+    this.getCarouselData = this.getCarouselData.bind(this);
   }
 
   // 组件生命周期 - 组件挂载
   componentDidMount() {
-    // 跑马灯图片加载
-    setTimeout(() => {
-      this.setState({
-        carouselData: ['AiyWuByWklrrUDlFignR', 'TekJlZRVCjLFexlOCuWn', 'IJOtIlfsYdTyaDTRVrLI'],
-      });
-    }, 100);
-    // 初始化店铺列表高度
-    this.setState(
-      {
-        shopListHeight: document.documentElement.clientHeight * 3 / 4, // 店铺列表图片高度
-      }
-    );
+    // 店铺走马灯数据加载
+    this.getCarouselData();
     let clientHeight = document.documentElement.clientHeight;
     let offsetHeight = 203 + CAROUSEL_IMG_HEIGHT;
     let height = clientHeight - offsetHeight;
@@ -137,7 +130,7 @@ export class Home extends React.Component {
       if (pageIndex <= totalPageNum) {
         // 请求下一个分页
         let rowIndexLimit;
-        if( pageIndex === Math.ceil(res.total/NUM_ROWS_PER_SECTION) ){
+        if (pageIndex === Math.ceil(res.total / NUM_ROWS_PER_SECTION)) {
           rowIndexLimit = res.total % NUM_ROWS_PER_SECTION;
         } else {
           rowIndexLimit = NUM_ROWS_PER_SECTION;
@@ -165,14 +158,14 @@ export class Home extends React.Component {
       );
       // 计算当前渲染的列表高度，从而动态改变店铺列表的滚动高度
       let clientHeight = document.documentElement.clientHeight - 50;
-      let shopListInitHeight  = clientHeight - (155 + CAROUSEL_IMG_HEIGHT);
+      let shopListInitHeight = clientHeight - (155 + CAROUSEL_IMG_HEIGHT);
       let shopListItemNumber = this.state.shopListViewData.length;
       let shopListRenderHeight = (shopListItemNumber * this.state.shopListItemHeight) +
-        ( shopListItemNumber * 8 ) + 35;
+        (shopListItemNumber * 8) + 35;
 
       console.log('Init:', shopListInitHeight, 'Render:', shopListRenderHeight, 'Client:', clientHeight);
 
-      if( shopListRenderHeight <= clientHeight ){
+      if (shopListRenderHeight <= clientHeight) {
         this.setState(
           {
             shopListHeight: shopListInitHeight > shopListRenderHeight ? shopListInitHeight : shopListRenderHeight - 3,
@@ -214,6 +207,21 @@ export class Home extends React.Component {
     );
   }
 
+  /**
+   * 获取走马灯图片数据
+   */
+  getCarouselData() {
+    this.shopWebService.shopBanner({
+      params: null,
+      success: (res) => {
+        console.log('轮播图数据:', res);
+        this.setState({
+          carouselData: res.list,
+        });
+      },
+    });
+  }
+
   render() {
     /**
      * 元素分隔符
@@ -246,23 +254,26 @@ export class Home extends React.Component {
 
     return (
       <div className="home-layout">
-        {/* 跑马灯轮播图 */}
+        <SearchGoods />
+        {/* 走马灯轮播图 */}
         <div className="home-carousel">
           <Carousel
-            autoplay={false}
+            autoplay={ true }
             infinite
             beforeChange={(from, to) => console.log(`slide from ${from} to ${to}`)}
             afterChange={index => console.log('slide to', index)}
+            style={{height: CAROUSEL_IMG_HEIGHT}} /* 设置走马灯容器高度，即使没有图片也保持高度 */
           >
-            {this.state.carouselData.map(val => (
+            {/* 渲染走马灯数据 */}
+            {this.state.carouselData.map(element => (
               <a
-                key={val}
-                href="http://www.alipay.com"
+                key={element.bannerId}
+                href="./"
                 style={{ display: 'inline-block', width: '100%', height: CAROUSEL_IMG_HEIGHT }}
               >
                 <img
-                  src={`https://zos.alipayobjects.com/rmsportal/${val}.png`}
-                  alt=""
+                  src={element.imageUrl}
+                  alt={element.name}
                   style={{ width: '100%', verticalAlign: 'top', height: CAROUSEL_IMG_HEIGHT }}
                   onLoad={() => {
                     // fire window resize event to change height
@@ -280,30 +291,34 @@ export class Home extends React.Component {
             <Flex justify="between">
               <Flex.Item>
                 <div className="menu-container">
-                  <div className="menu-item">
-
+                  <div className="menu-item menu-item__order">
+                    <FontAwesomeIcon className="menu-item__icon" icon={faClipboardList} size="2x" />
                   </div>
+                  <span className="menu-item__text">订单</span>
                 </div>
               </Flex.Item>
               <Flex.Item>
                 <div className="menu-container">
-                  <div className="menu-item">
-
+                  <div className="menu-item menu-item__cart">
+                    <FontAwesomeIcon className="menu-item__icon" icon={faShoppingCart} size="2x" />
                   </div>
+                  <span className="menu-item__text">购物车</span>
                 </div>
               </Flex.Item>
               <Flex.Item>
                 <div className="menu-container">
-                  <div className="menu-item">
-
+                  <div className="menu-item menu-item__search">
+                    <FontAwesomeIcon className="menu-item__icon" icon={faSearch} size="2x" />
                   </div>
+                  <span className="menu-item__text">搜索商品</span>
                 </div>
               </Flex.Item>
               <Flex.Item>
                 <div className="menu-container">
-                  <div className="menu-item">
-
+                  <div className="menu-item menu-item__user">
+                    <FontAwesomeIcon className="menu-item__icon" icon={faUser} size="2x" />
                   </div>
+                  <span className="menu-item__text">个人中心</span>
                 </div>
               </Flex.Item>
             </Flex>
@@ -391,7 +406,7 @@ class ShopListRowItemRender extends React.Component {
     this.shopItemTags = this.shopItemTags.bind(this);
   }
 
-  componentDidMount(){
+  componentDidMount() {
     this.props.getShopListItemHeight(this.shopListItem.current.clientHeight);
   }
 
@@ -432,11 +447,28 @@ class ShopListRowItemRender extends React.Component {
           </div>
           <div className="shopList-item__content-address">
             {this.props.shopItemData.address}
-            </div>
+          </div>
           <div className="shopList-item__content-tags">
             {this.shopItemTags(this.props.shopItemData.tagThinResponse)}
           </div>
         </div>
+      </div>
+    );
+  }
+}
+
+class SearchGoods extends React.Component {
+  constructor(props){
+    super(props);
+  }
+
+
+  render(){
+    return (
+      <div className="search-layout">
+        <WhiteSpace size="xs"/>
+        <SearchBar placeholder="搜索商品" />
+        <WhiteSpace size="xs" />
       </div>
     );
   }

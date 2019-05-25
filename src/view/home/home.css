@@ -1,20 +1,41 @@
 .home-menu{
   width: 100%;
+  background-color: rgb(255, 255, 255);
 }
 .menu-container{
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 7em;
   width: 100%;
-  background-color: rgb(184, 241, 255);
 }
 .menu-item{
   width: 4.5em;
   height: 4.5em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   border-radius: 50%;
+}
+.menu-item__text{
+  margin-top: 0.5em;
+}
+.menu-item__order{
+  background-color:rgb(247, 62, 49) ;
+}
+.menu-item__cart{
+  background-color:rgb(253, 167, 6) ;
+}
+.menu-item__user{
+  background-color:rgb(36, 131, 240) ;
+}
+.menu-item__search{
   background-color: rgb(54, 194, 36);
+}
+.menu-item__icon{
+  color: #ffffff;
 }
 /* 重写 Card 样式 */
 .shopList-card{
