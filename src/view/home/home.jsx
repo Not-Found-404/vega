@@ -1,14 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card, SearchBar } from 'antd-mobile';
+import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card, SearchBar, Icon, List } from 'antd-mobile';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUser, faClipboardList, faShoppingCart, faSearch } from '@fortawesome/free-solid-svg-icons'
+import { faUser, faClipboardList, faShoppingCart, faSearch, faBars } from '@fortawesome/free-solid-svg-icons'
+import { StickyContainer, Sticky } from 'react-sticky';
 import { ShopWebService } from '../../service/shop/shop.web.service';
 import './home.css';
 
 // 常量
 const NUM_ROWS_PER_SECTION = 5;  // 每个 Section 的 Row 数量
 const CAROUSEL_IMG_HEIGHT = 230; // 默认走马灯图片高度
+
+// 组件变量定义
+const Item = List.Item;
 
 export class Home extends React.Component {
   // 组件参数
@@ -258,11 +262,11 @@ export class Home extends React.Component {
         {/* 走马灯轮播图 */}
         <div className="home-carousel">
           <Carousel
-            autoplay={ true }
+            autoplay={true}
             infinite
             beforeChange={(from, to) => console.log(`slide from ${from} to ${to}`)}
             afterChange={index => console.log('slide to', index)}
-            style={{height: CAROUSEL_IMG_HEIGHT}} /* 设置走马灯容器高度，即使没有图片也保持高度 */
+            style={{ height: CAROUSEL_IMG_HEIGHT }} /* 设置走马灯容器高度，即使没有图片也保持高度 */
           >
             {/* 渲染走马灯数据 */}
             {this.state.carouselData.map(element => (
@@ -330,45 +334,47 @@ export class Home extends React.Component {
         <Card full className="shopList-card">
           <Card.Header className="shopList-card__header" title="好店推荐" />
           <Card.Body className="shopList-card__body">
-
-            {/* 店铺列表 - ListView */}
-            <ListView
-              // 映射 ListView
-              ref={el => this.lv = el}
-              // ListView 数据源
-              dataSource={this.state.shopListData}
-              // 渲染页脚
-              renderFooter={() =>
-                (
-                  <div className="shopList-footer">
-                    {(this.state.shopListIsLoading && this.state.shopListDataHasMore) ? '加载中...' : '加载完成'}
-                  </div>
-                )
-              }
-              // 自定义 body 的包裹组件
-              renderBodyComponent={() => <ShopListBodyContainer />}
-              // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
-              renderRow={shopItemRender}
-              // 如果提供了此属性，一个可渲染的组件会被渲染在每一行下面，除了小节标题的前面的最后一行。在其上方的小节ID和行ID，以及邻近的行是否被高亮会作为参数传递进来。
-              renderSeparator={shopItemSeparator}
-              // ListView 样式
-              style={{
-                height: this.state.shopListHeight,
-                overflowY: 'auto',
-                overflowX: 'hidden',
-              }}
-              // 每次事件循环（每帧）渲染的行数
-              pageSize={5}
-              // 在滚动的过程中，每帧最多调用一次此回调函数。调用的频率可以用 scrollEventThrottle 属性来控制。
-              onScroll={() => { console.log('滚动事件触发'); }}
-              // 当一个行接近屏幕范围多少像素之内的时候，就开始渲染这一行
-              scrollRenderAheadDistance={500}
-              // 当所有的数据都已经渲染过，并且列表被滚动到距离最底部不足 onEndReachedThreshold 个像素的距离时调用
-              onEndReached={this.onEndReached}
-              // 调用 onEndReached 之前的临界值
-              onEndReachedThreshold={1000}
-            />
-
+            <StickyContainer>
+              {/* 店铺列表 - 筛选器 */}
+              <ShopListFilter />
+              {/* 店铺列表 - ListView */}
+              <ListView
+                // 映射 ListView
+                ref={el => this.lv = el}
+                // ListView 数据源
+                dataSource={this.state.shopListData}
+                // 渲染页脚
+                renderFooter={() =>
+                  (
+                    <div className="shopList-footer">
+                      {(this.state.shopListIsLoading && this.state.shopListDataHasMore) ? '加载中...' : '加载完成'}
+                    </div>
+                  )
+                }
+                // 自定义 body 的包裹组件
+                renderBodyComponent={() => <ShopListBodyContainer />}
+                // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
+                renderRow={shopItemRender}
+                // 如果提供了此属性，一个可渲染的组件会被渲染在每一行下面，除了小节标题的前面的最后一行。在其上方的小节ID和行ID，以及邻近的行是否被高亮会作为参数传递进来。
+                renderSeparator={shopItemSeparator}
+                // ListView 样式
+                style={{
+                  height: this.state.shopListHeight,
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                }}
+                // 每次事件循环（每帧）渲染的行数
+                pageSize={5}
+                // 在滚动的过程中，每帧最多调用一次此回调函数。调用的频率可以用 scrollEventThrottle 属性来控制。
+                onScroll={() => { console.log('滚动事件触发'); }}
+                // 当一个行接近屏幕范围多少像素之内的时候，就开始渲染这一行
+                scrollRenderAheadDistance={500}
+                // 当所有的数据都已经渲染过，并且列表被滚动到距离最底部不足 onEndReachedThreshold 个像素的距离时调用
+                onEndReached={this.onEndReached}
+                // 调用 onEndReached 之前的临界值
+                onEndReachedThreshold={1000}
+              />
+            </StickyContainer>
           </Card.Body>
 
         </Card>
@@ -458,17 +464,66 @@ class ShopListRowItemRender extends React.Component {
 }
 
 class SearchGoods extends React.Component {
-  constructor(props){
+  constructor(props) {
     super(props);
   }
 
 
-  render(){
+  render() {
     return (
       <div className="search-layout">
-        <WhiteSpace size="xs"/>
+        <WhiteSpace size="xs" />
         <SearchBar placeholder="搜索商品" />
         <WhiteSpace size="xs" />
+      </div>
+    );
+  }
+}
+
+/**
+ * 店铺列表筛选组件
+ */
+class ShopListFilter extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    return (
+      <div className="filter-layout">
+        <Sticky>
+          {
+            (
+              {
+                style, // Strick 传入样式
+              }
+            ) => {
+              // 渲染筛选器界面
+              return (
+                <div className="filter-strick">
+                  <div
+                    className="filter-menu"
+                    style={{
+                      ...style,
+                      zIndex: 1,
+
+                    }}
+                  >
+                    {/* 选择分类按钮 */}
+                    <div className="filter-menu__item">
+                      <FontAwesomeIcon className="filter-menu__item-icon" icon={faBars} size="md  " />
+                      <div className="filter-menu__item-text">
+                        类别
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+              );
+            }
+          }
+        </Sticky>
       </div>
     );
   }
