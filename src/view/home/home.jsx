@@ -103,7 +103,7 @@ export class Home extends React.Component {
    * 获取店铺列表信息 - 列表每次到达底部调用一次
    */
   getShopListData( searchParam ) {
-    console.log('当前页码:', this.state.pageIndex);
+    console.log('当前页码:', this.state.pageIndex, '查询携带参数:', searchParam);
     let pageIndex = this.state.pageIndex;
     let totalPageNum,  // 数据总页数
       shopListTotalNumber = this.state.shopListTotalNumber; // 数据总量
