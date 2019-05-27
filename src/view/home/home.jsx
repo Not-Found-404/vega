@@ -512,7 +512,7 @@ class ShopListFilter extends React.Component {
     super(props);
     // 初始化状态
     this.state = {
-      silderIsOpen: true,
+      silderIsOpen: false,
       tagData: []
     };
 
@@ -578,7 +578,16 @@ class ShopListFilter extends React.Component {
             return (
               <List.Item key={index}
                 thumb={<FontAwesomeIcon className="filter-menu__item-icon" icon={faTag} />}
-                onClick={() => { this.props.restShopList(); this.props.getShopListData(); }}
+                onClick={() => {
+                    this.props.restShopList();
+                    this.props.getShopListData();
+                    this.setState(
+                      {
+                        silderIsOpen: false,
+                      }
+                    );
+                  }
+                }
               >
                 全部类别
               </List.Item>
@@ -587,7 +596,16 @@ class ShopListFilter extends React.Component {
           return (
             <List.Item key={currentValue.tagId}
               thumb={<FontAwesomeIcon className="filter-menu__item-icon" icon={faTag} />}
-              onClick={() => { this.props.restShopList(); this.props.getShopListData({ tagId: currentValue.tagId}); }}
+              onClick={() => {
+                  this.props.restShopList();
+                  this.props.getShopListData({ tagId: currentValue.tagId});
+                  this.setState(
+                    {
+                      silderIsOpen: false,
+                    }
+                  );
+                }
+              }
             >
               {currentValue.name}
             </List.Item>
