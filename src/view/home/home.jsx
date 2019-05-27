@@ -1,10 +1,10 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card, SearchBar, List, Drawer } from 'antd-mobile';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUser, faClipboardList, faShoppingCart, faSearch, faBars } from '@fortawesome/free-solid-svg-icons'
+import { faUser, faClipboardList, faShoppingCart, faSearch, faBars, faTag } from '@fortawesome/free-solid-svg-icons'
 import { StickyContainer, Sticky } from 'react-sticky';
 import { ShopWebService } from '../../service/shop/shop.web.service';
+import { TagWebService } from '../../service/tag/tag.web.service';
 import './home.css';
 
 // 常量
@@ -44,7 +44,6 @@ export class Home extends React.Component {
       shopListDataBlobs: {},      // shopList 数据驶入映射
       shopListSectionIDs: [],     // shopList SectionID
       shopListRowIDs: [],         // shopList RowsIDs
-      dataBlobs: {},
       shopListItemHeight: 0,      // shopList 每个元素的高度
     }
 
@@ -52,6 +51,7 @@ export class Home extends React.Component {
     this.getShopListData = this.getShopListData.bind(this);
     this.getShopListItemHeight = this.getShopListItemHeight.bind(this);
     this.getCarouselData = this.getCarouselData.bind(this);
+    this.restShopList = this.restShopList.bind(this);
   }
 
   // 组件生命周期 - 组件挂载
@@ -82,9 +82,27 @@ export class Home extends React.Component {
   }
 
   /**
+   * 初始化店铺列表请求
+   */
+  restShopList(){
+    this.setState(
+      {
+        pageIndex: 1,
+        shopListTotalNumber: 0,
+        shopListDataHasMore: false,
+        shopListViewData: [],
+        shopListDataBlobs: {},
+        shopListSectionIDs: [],     // shopList SectionID
+        shopListRowIDs: [],
+        shopListData: this.state.shopListData.cloneWithRowsAndSections({}, [], []), // ReactNative 克隆视图数据
+      }
+    );
+  }
+
+  /**
    * 获取店铺列表信息 - 列表每次到达底部调用一次
    */
-  getShopListData() {
+  getShopListData( searchParam ) {
     console.log('当前页码:', this.state.pageIndex);
     let pageIndex = this.state.pageIndex;
     let totalPageNum,  // 数据总页数
@@ -122,11 +140,11 @@ export class Home extends React.Component {
       // 处理店铺列表数据映射
       let sectionIDs = this.state.shopListSectionIDs;
       let rowIDs = this.state.shopListRowIDs;
-      let dataBlobs = this.state.dataBlobs;
+      let shopListDataBlobs = this.state.shopListDataBlobs;
       if (pageIndex === 1) {
         sectionIDs.push('shopListSection 1');
         rowIDs.push([]);
-        dataBlobs['shopListSection 1'] = 'shopListSection 1';
+        shopListDataBlobs['shopListSection 1'] = 'shopListSection 1';
       }
       if (pageIndex <= totalPageNum) {
         // 请求下一个分页
@@ -143,7 +161,7 @@ export class Home extends React.Component {
         ) {
           // 装载数据索引映射
           rowIDs[0].push(rowIndex);
-          dataBlobs[rowIndex] = rowIndex;
+          shopListDataBlobs[rowIndex] = rowIndex;
         }
       };
       console.log('sectionIDs:', sectionIDs, '\nrowIDs:', rowIDs);
@@ -153,8 +171,8 @@ export class Home extends React.Component {
           shopListViewData: shopListViewData,
           shopListTotalNumber: res.total,
           shopListIsLoading: false,
-          dataBlobs: dataBlobs,
-          shopListData: this.state.shopListData.cloneWithRowsAndSections(dataBlobs, sectionIDs, rowIDs), // ReactNative 克隆视图数据
+          shopListDataBlobs: shopListDataBlobs,
+          shopListData: this.state.shopListData.cloneWithRowsAndSections(shopListDataBlobs, sectionIDs, rowIDs), // ReactNative 克隆视图数据
         }
       );
       // 计算当前渲染的列表高度，从而动态改变店铺列表的滚动高度
@@ -190,11 +208,13 @@ export class Home extends React.Component {
         params: {
           pageNo: pageIndex,
           pageSize: NUM_ROWS_PER_SECTION,
+          ...searchParam,
         },
         success: processData,
       }
     );
   }
+
 
   /**
    * 获取shopList元素渲染后的高度，并进行高度记录
@@ -334,7 +354,10 @@ export class Home extends React.Component {
           <Card.Body className="shopList-card__body">
             <StickyContainer>
               {/* 店铺列表 - 筛选器 */}
-              <ShopListFilter />
+              <ShopListFilter
+                getShopListData={this.getShopListData}
+                restShopList = {this.restShopList}
+              />
               {/* 店铺列表 - ListView */}
               <ListView
                 // 映射 ListView
@@ -482,21 +505,30 @@ class SearchGoods extends React.Component {
  * 店铺列表筛选组件
  */
 class ShopListFilter extends React.Component {
+
+  tagWebService = new TagWebService();
+
   constructor(props) {
     super(props);
     // 初始化状态
     this.state = {
       silderIsOpen: true,
+      tagData: []
     };
 
     this.onDrawerOpenChange = this.onDrawerOpenChange.bind(this);
     this.openDrawer = this.openDrawer.bind(this);
+    this.initShopListCategory = this.initShopListCategory.bind(this);
+  }
+
+  componentDidMount() {
+    this.initShopListCategory();
   }
 
   /**
    * 打开抽屉触发按钮
    */
-  openDrawer(){
+  openDrawer() {
     this.setState(
       {
         silderIsOpen: true,
@@ -512,22 +544,56 @@ class ShopListFilter extends React.Component {
     this.setState({ silderIsOpen: openState });
   }
 
+  /**
+   * 初始化店铺类别
+   */
+  initShopListCategory() {
+    this.tagWebService.list(
+      {
+        params: null,
+        success: (res) => {
+          console.log('店铺标签数据:', res);
+          this.setState({
+            tagData: res.tagThinResponse,
+          });
+        },
+      }
+    );
+  }
+
+  /**
+   * 根据店铺标签查询店铺信息
+   */
+
   render() {
     /**
      * 初始化获取店铺列表数据
     */
     const shopListCategory = (<List>
-      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map((i, index) => {
-        if (index === 0) {
-          return (<List.Item key={index}
-            thumb="https://zos.alipayobjects.com/rmsportal/eOZidTabPoEbPeU.png"
-            multipleLine
-          >Category</List.Item>);
-        }
-        return (<List.Item key={index}
-          thumb="https://zos.alipayobjects.com/rmsportal/eOZidTabPoEbPeU.png"
-        >Category{index}</List.Item>);
-      })}
+      {
+        this.state.tagData.map(
+          /** 返回全部数组 */
+          (currentValue, index) => {
+          if (index === 0) {
+            return (
+              <List.Item key={index}
+                thumb={<FontAwesomeIcon className="filter-menu__item-icon" icon={faTag} />}
+                onClick={() => { this.props.restShopList(); this.props.getShopListData(); }}
+              >
+                全部类别
+              </List.Item>
+            );
+          }
+          return (
+            <List.Item key={currentValue.tagId}
+              thumb={<FontAwesomeIcon className="filter-menu__item-icon" icon={faTag} />}
+              onClick={() => { this.props.restShopList(); this.props.getShopListData({ tagId: currentValue.tagId}); }}
+            >
+              {currentValue.name}
+            </List.Item>
+          );
+        })
+      }
     </List>);
 
     return (
@@ -562,13 +628,13 @@ class ShopListFilter extends React.Component {
                   {/* 侧边栏 */}
                   <Drawer
                     className="filter-silder"
-                    style={{ height: document.documentElement.clientHeight - 50}}
+                    style={{ height: document.documentElement.clientHeight - 50 }}
                     contentStyle={{ color: '#A6A6A6', textAlign: 'center', marginTop: 50 }}
                     sidebar={shopListCategory}
                     open={this.state.silderIsOpen}
                     onOpenChange={this.onDrawerOpenChange}
                   >
-                    <div style={{display: 'none'}}></div>
+                    <div style={{ display: 'none' }}></div>
                   </Drawer>
                 </div>
               );
