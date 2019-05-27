@@ -1,5 +1,7 @@
 import React from 'react';
-import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card, SearchBar, List, Drawer } from 'antd-mobile';
+import { BrowserRouter as Router, Route, withRouter } from "react-router-dom";
+import PropTypes from "prop-types";
+import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card, SearchBar, List, Drawer, Icon } from 'antd-mobile';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUser, faClipboardList, faShoppingCart, faSearch, faBars, faTag } from '@fortawesome/free-solid-svg-icons'
 import { StickyContainer, Sticky } from 'react-sticky';
@@ -14,6 +16,14 @@ const CAROUSEL_IMG_HEIGHT = 230; // 默认走马灯图片高度
 export class Home extends React.Component {
   // 组件参数
   shopWebService = new ShopWebService();
+
+  // 路由参数定义
+  static propTypes = {
+    match: PropTypes.object.isRequired,
+    location: PropTypes.object.isRequired,
+    history: PropTypes.object.isRequired
+  };
+
   /**
    * 构造函数
    * @param {any} props - 组件初始化参数
@@ -52,6 +62,7 @@ export class Home extends React.Component {
     this.getShopListItemHeight = this.getShopListItemHeight.bind(this);
     this.getCarouselData = this.getCarouselData.bind(this);
     this.restShopList = this.restShopList.bind(this);
+    this.gotoRouteLocation = this.gotoRouteLocation.bind(this);
   }
 
   // 组件生命周期 - 组件挂载
@@ -243,6 +254,15 @@ export class Home extends React.Component {
     });
   }
 
+  /**
+   * 路由跳转函数
+   * @param {string} location - 路由地址
+   */
+  gotoRouteLocation(location){
+    let history = this.props.history;
+    history.push(location);
+  }
+
   render() {
     /**
      * 元素分隔符
@@ -312,7 +332,7 @@ export class Home extends React.Component {
           <WingBlank size="md">
             <Flex justify="between">
               <Flex.Item>
-                <div className="menu-container">
+                <div className="menu-container" onClick={()=>{this.gotoRouteLocation('/order')}}>
                   <div className="menu-item menu-item__order">
                     <FontAwesomeIcon className="menu-item__icon" icon={faClipboardList} size="2x" />
                   </div>
@@ -320,7 +340,7 @@ export class Home extends React.Component {
                 </div>
               </Flex.Item>
               <Flex.Item>
-                <div className="menu-container">
+                <div className="menu-container" onClick={()=>{this.gotoRouteLocation('/cart')}}>
                   <div className="menu-item menu-item__cart">
                     <FontAwesomeIcon className="menu-item__icon" icon={faShoppingCart} size="2x" />
                   </div>
@@ -328,7 +348,7 @@ export class Home extends React.Component {
                 </div>
               </Flex.Item>
               <Flex.Item>
-                <div className="menu-container">
+                <div className="menu-container" onClick={()=>{this.gotoRouteLocation('/searchGoods')}}>
                   <div className="menu-item menu-item__search">
                     <FontAwesomeIcon className="menu-item__icon" icon={faSearch} size="2x" />
                   </div>
@@ -336,7 +356,7 @@ export class Home extends React.Component {
                 </div>
               </Flex.Item>
               <Flex.Item>
-                <div className="menu-container">
+                <div className="menu-container" onClick={()=>{this.gotoRouteLocation('/my')}}>
                   <div className="menu-item menu-item__user">
                     <FontAwesomeIcon className="menu-item__icon" icon={faUser} size="2x" />
                   </div>
@@ -405,6 +425,8 @@ export class Home extends React.Component {
     );
   }
 }
+
+Home = withRouter(Home);
 
 /**
  * 店铺列表容器
@@ -485,16 +507,23 @@ class ShopListRowItemRender extends React.Component {
 }
 
 class SearchGoods extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-
   render() {
     return (
       <div className="search-layout">
         <WhiteSpace size="xs" />
-        <SearchBar placeholder="搜索商品" />
+        <div
+          onClick={
+            ()=>{
+              alert('Click');
+            }
+          }
+          className="mockSearch-container"
+        >
+          <div className="mockSearch-inner">
+            <Icon className="mockSearch-icon" type="search" size='xs' />
+            <span className="mockSearch-text">搜索商品</span>
+          </div>
+        </div>
         <WhiteSpace size="xs" />
       </div>
     );
