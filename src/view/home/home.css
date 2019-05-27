@@ -138,3 +138,24 @@
 .am-list-footer{
   padding: 0;
 }
+.filter-menu{
+  height: 3em;
+  margin: 0 0.6em;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  background-color: #ffffff;
+}
+.filter-menu__item{
+  height: 2.2em;
+  display: flex;
+  padding: 0 0.5em;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+}
+.filter-menu__item-icon{
+  margin-right: 0.5em;
+}
