@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card, SearchBar, Icon, List } from 'antd-mobile';
+import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card, SearchBar, List, Drawer } from 'antd-mobile';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUser, faClipboardList, faShoppingCart, faSearch, faBars } from '@fortawesome/free-solid-svg-icons'
 import { StickyContainer, Sticky } from 'react-sticky';
@@ -10,9 +10,6 @@ import './home.css';
 // 常量
 const NUM_ROWS_PER_SECTION = 5;  // 每个 Section 的 Row 数量
 const CAROUSEL_IMG_HEIGHT = 230; // 默认走马灯图片高度
-
-// 组件变量定义
-const Item = List.Item;
 
 export class Home extends React.Component {
   // 组件参数
@@ -258,6 +255,7 @@ export class Home extends React.Component {
 
     return (
       <div className="home-layout">
+
         <SearchGoods />
         {/* 走马灯轮播图 */}
         <div className="home-carousel">
@@ -486,9 +484,52 @@ class SearchGoods extends React.Component {
 class ShopListFilter extends React.Component {
   constructor(props) {
     super(props);
+    // 初始化状态
+    this.state = {
+      silderIsOpen: true,
+    };
+
+    this.onDrawerOpenChange = this.onDrawerOpenChange.bind(this);
+    this.openDrawer = this.openDrawer.bind(this);
+  }
+
+  /**
+   * 打开抽屉触发按钮
+   */
+  openDrawer(){
+    this.setState(
+      {
+        silderIsOpen: true,
+      }
+    );
+  }
+
+  /**
+   * 侧边栏打开函数
+   */
+  onDrawerOpenChange(openState) {
+    console.log(openState);
+    this.setState({ silderIsOpen: openState });
   }
 
   render() {
+    /**
+     * 初始化获取店铺列表数据
+    */
+    const shopListCategory = (<List>
+      {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map((i, index) => {
+        if (index === 0) {
+          return (<List.Item key={index}
+            thumb="https://zos.alipayobjects.com/rmsportal/eOZidTabPoEbPeU.png"
+            multipleLine
+          >Category</List.Item>);
+        }
+        return (<List.Item key={index}
+          thumb="https://zos.alipayobjects.com/rmsportal/eOZidTabPoEbPeU.png"
+        >Category{index}</List.Item>);
+      })}
+    </List>);
+
     return (
       <div className="filter-layout">
         <Sticky>
@@ -505,21 +546,31 @@ class ShopListFilter extends React.Component {
                     className="filter-menu"
                     style={{
                       ...style,
-                      zIndex: 1,
+                      zIndex: 4,
 
                     }}
                   >
                     {/* 选择分类按钮 */}
-                    <div className="filter-menu__item">
-                      <FontAwesomeIcon className="filter-menu__item-icon" icon={faBars} size="md  " />
+                    <div className="filter-menu__item" onClick={this.openDrawer}>
+                      <FontAwesomeIcon className="filter-menu__item-icon" icon={faBars} size="1x" />
                       <div className="filter-menu__item-text">
                         类别
                       </div>
                     </div>
 
                   </div>
+                  {/* 侧边栏 */}
+                  <Drawer
+                    className="filter-silder"
+                    style={{ height: document.documentElement.clientHeight - 50}}
+                    contentStyle={{ color: '#A6A6A6', textAlign: 'center', marginTop: 50 }}
+                    sidebar={shopListCategory}
+                    open={this.state.silderIsOpen}
+                    onOpenChange={this.onDrawerOpenChange}
+                  >
+                    <div style={{display: 'none'}}></div>
+                  </Drawer>
                 </div>
-
               );
             }
           }
