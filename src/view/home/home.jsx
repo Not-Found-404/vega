@@ -114,7 +114,7 @@ export class Home extends React.Component {
    * 获取店铺列表信息 - 列表每次到达底部调用一次
    */
   getShopListData( searchParam ) {
-    console.log('当前页码:', this.state.pageIndex, '查询携带参数:', searchParam);
+    // console.log('当前页码:', this.state.pageIndex, '查询携带参数:', searchParam);
     let pageIndex = this.state.pageIndex;
     let totalPageNum,  // 数据总页数
       shopListTotalNumber = this.state.shopListTotalNumber; // 数据总量
@@ -132,7 +132,7 @@ export class Home extends React.Component {
      * 请求数据处理
      */
     let processData = (res) => {
-      console.log(res);
+      // console.log(res);
       // 处理店铺列表源数据
       let shopListViewData = this.state.shopListViewData;
       if (res.data.length > 0) {
@@ -165,7 +165,7 @@ export class Home extends React.Component {
         } else {
           rowIndexLimit = NUM_ROWS_PER_SECTION;
         }
-        console.log('RowIndexLimit:', rowIndexLimit);
+        // console.log('RowIndexLimit:', rowIndexLimit);
         for (let rowIndex = (pageIndex - 1) * NUM_ROWS_PER_SECTION;
           rowIndex < ((pageIndex - 1) * NUM_ROWS_PER_SECTION) + rowIndexLimit;
           rowIndex++
@@ -175,7 +175,7 @@ export class Home extends React.Component {
           shopListDataBlobs[rowIndex] = rowIndex;
         }
       };
-      console.log('sectionIDs:', sectionIDs, '\nrowIDs:', rowIDs);
+      // console.log('sectionIDs:', sectionIDs, '\nrowIDs:', rowIDs);
       // 存储数据
       this.setState(
         {
@@ -193,7 +193,7 @@ export class Home extends React.Component {
       let shopListRenderHeight = (shopListItemNumber * this.state.shopListItemHeight) +
         (shopListItemNumber * 8) + 35;
 
-      console.log('Init:', shopListInitHeight, 'Render:', shopListRenderHeight, 'Client:', clientHeight);
+      // console.log('Init:', shopListInitHeight, 'Render:', shopListRenderHeight, 'Client:', clientHeight);
 
       if (shopListRenderHeight <= clientHeight) {
         this.setState(
@@ -245,7 +245,7 @@ export class Home extends React.Component {
     this.shopWebService.shopBanner({
       params: null,
       success: (res) => {
-        console.log('轮播图数据:', res);
+        // console.log('轮播图数据:', res);
         this.setState({
           carouselData: res.list,
         });
@@ -282,7 +282,7 @@ export class Home extends React.Component {
 
     // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
     const shopItemRender = (rowData, sectionID, rowID) => {
-      console.log('渲染行数据源:\nrowData:', rowData, 'sectionId:', sectionID, 'rowId:', rowID);
+      // console.log('渲染行数据源:\nrowData:', rowData, 'sectionId:', sectionID, 'rowId:', rowID);
       return (
         <ShopListRowItemRender
           rowData={rowData} sectionID={sectionID} rowID={rowID}
@@ -301,8 +301,8 @@ export class Home extends React.Component {
           <Carousel
             autoplay={true}
             infinite
-            beforeChange={(from, to) => console.log(`slide from ${from} to ${to}`)}
-            afterChange={index => console.log('slide to', index)}
+            beforeChange={(from, to) => {}}
+            afterChange={index => {}}
             style={{ height: CAROUSEL_IMG_HEIGHT }} /* 设置走马灯容器高度，即使没有图片也保持高度 */
           >
             {/* 渲染走马灯数据 */}
@@ -406,7 +406,7 @@ export class Home extends React.Component {
                 // 每次事件循环（每帧）渲染的行数
                 pageSize={5}
                 // 在滚动的过程中，每帧最多调用一次此回调函数。调用的频率可以用 scrollEventThrottle 属性来控制。
-                onScroll={() => { console.log('滚动事件触发'); }}
+                onScroll={() => {}}
                 // 当一个行接近屏幕范围多少像素之内的时候，就开始渲染这一行
                 scrollRenderAheadDistance={500}
                 // 当所有的数据都已经渲染过，并且列表被滚动到距离最底部不足 onEndReachedThreshold 个像素的距离时调用
@@ -568,7 +568,6 @@ class ShopListFilter extends React.Component {
    * 侧边栏打开函数
    */
   onDrawerOpenChange(openState) {
-    console.log(openState);
     this.setState({ silderIsOpen: openState });
   }
 
@@ -580,7 +579,7 @@ class ShopListFilter extends React.Component {
       {
         params: null,
         success: (res) => {
-          console.log('店铺标签数据:', res);
+          // console.log('店铺标签数据:', res);
           this.setState({
             tagData: res.tagThinResponse,
           });

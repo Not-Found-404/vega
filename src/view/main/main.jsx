@@ -1,7 +1,7 @@
 import React from 'react';
 import { TabBar } from 'antd-mobile';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // 导入 Fontawesome 图标库
-import { faUser, faClipboardList, faHome } from '@fortawesome/free-solid-svg-icons';      // 导入 Fontawesome 图标库
+import { faUser, faClipboardList, faHome, faShoppingCart } from '@fortawesome/free-solid-svg-icons';      // 导入 Fontawesome 图标库
 import { BrowserRouter as Router, Route, withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import { Home } from "../home/home";
@@ -71,7 +71,7 @@ class Main extends React.Component {
   changeRoute() {
     let location = this.props.location.pathname;
     let locationUrls = location.substring(1, location.length).split('/');
-    console.log('当前路径:', location, '\n路径分割:', locationUrls);
+    // console.log('当前路径:', location, '\n路径分割:', locationUrls);
     switch (locationUrls[0]) {
       case 'home':
         this.setState(
@@ -134,8 +134,8 @@ class Main extends React.Component {
             <Route path="/home" component={Home} />
           </TabBar.Item>
           <TabBar.Item
-            icon={<FontAwesomeIcon icon={faClipboardList} size="lg" />}
-            selectedIcon={<FontAwesomeIcon icon={faClipboardList} size="lg" />}
+            icon={<FontAwesomeIcon icon={faShoppingCart} size="lg" />}
+            selectedIcon={<FontAwesomeIcon icon={faShoppingCart} size="lg" />}
             title="购物车"
             key="cart"
             selected={this.state.selectedTab === 'cartTab'}
