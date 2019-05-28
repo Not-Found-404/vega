@@ -58,6 +58,13 @@ class Main extends React.Component {
     );
   }
 
+  componentDidUpdate(prevProps, prevState, snapshot){
+    // 判断组件是否更新
+    if (this.props !== prevProps ) {
+      this.changeRoute();
+    }
+  }
+
   /**
    * 路由切换检测 - 根据当前路由进行 Tab 切换
    */
