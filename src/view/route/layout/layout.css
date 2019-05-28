@@ -1,9 +1,10 @@
 .layout-route{
   position: absolute;
-  display: flex;
   top: 0;
   left: 0;
   z-index: 1;
-  background-color: deepskyblue;
-  overflow: auto;
+  background-color: rgb(89, 0, 255);
+  border: 0.2em solid #fffb06;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
