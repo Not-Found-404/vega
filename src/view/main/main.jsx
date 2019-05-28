@@ -7,6 +7,7 @@ import PropTypes from "prop-types";
 import { Home } from "../home/home";
 import { Order } from "../order/order";
 import { My } from "../my/my";
+import { Cart } from '../cart/cart';
 import { UserWebService } from '../../service/user/user.web.service'
 import './main.css';
 
@@ -57,6 +58,13 @@ class Main extends React.Component {
     );
   }
 
+  componentDidUpdate(prevProps, prevState, snapshot){
+    // 判断组件是否更新
+    if (this.props !== prevProps ) {
+      this.changeRoute();
+    }
+  }
+
   /**
    * 路由切换检测 - 根据当前路由进行 Tab 切换
    */
@@ -83,6 +91,13 @@ class Main extends React.Component {
         this.setState(
           {
             selectedTab: 'myTab',
+          }
+        );
+        break;
+      case 'cart':
+        this.setState(
+          {
+            selectedTab: 'cartTab',
           }
         );
         break;
@@ -117,6 +132,24 @@ class Main extends React.Component {
             }}
           >
             <Route path="/home" component={Home} />
+          </TabBar.Item>
+          <TabBar.Item
+            icon={<FontAwesomeIcon icon={faClipboardList} size="lg" />}
+            selectedIcon={<FontAwesomeIcon icon={faClipboardList} size="lg" />}
+            title="购物车"
+            key="cart"
+            selected={this.state.selectedTab === 'cartTab'}
+            onPress={() => {
+              // 进行路由跳转
+              history.push('/cart');
+
+              // 存储状态
+              this.setState({
+                selectedTab: 'cartTab',
+              });
+            }}
+          >
+            <Route path="/cart" component={Cart} />
           </TabBar.Item>
           <TabBar.Item
             icon={<FontAwesomeIcon icon={faClipboardList} size="lg" />}
