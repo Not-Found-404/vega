@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
-import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card, SearchBar, List, Drawer, Icon } from 'antd-mobile';
+import { Carousel, WingBlank, Flex, ListView, WhiteSpace, Card, List, Drawer, Icon } from 'antd-mobile';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUser, faClipboardList, faShoppingCart, faSearch, faBars, faTag } from '@fortawesome/free-solid-svg-icons'
 import { StickyContainer, Sticky } from 'react-sticky';
@@ -208,7 +208,6 @@ export class Home extends React.Component {
           }
         );
       }
-
     }
 
     /**
