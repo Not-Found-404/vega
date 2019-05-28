@@ -11,6 +11,7 @@
     "axios": "^0.18.0",
     "babel-plugin-import": "latest",
     "classnames": "^2.2.6",
+    "query-string": "^6.5.0",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-router-dom": "^5.0.0",

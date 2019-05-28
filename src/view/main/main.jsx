@@ -1,13 +1,14 @@
 import React from 'react';
 import { TabBar } from 'antd-mobile';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // 导入 Fontawesome 图标库
-import { faUser, faClipboardList, faHome } from '@fortawesome/free-solid-svg-icons';      // 导入 Fontawesome 图标库
+import { faUser, faClipboardList, faHome, faShoppingCart } from '@fortawesome/free-solid-svg-icons';      // 导入 Fontawesome 图标库
 import { BrowserRouter as Router, Route, withRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import { Home } from "../home/home";
 import { Order } from "../order/order";
 import { My } from "../my/my";
 import { Cart } from '../cart/cart';
+import { LayoutRoute } from '../route/layout/layout';
 import { UserWebService } from '../../service/user/user.web.service'
 import './main.css';
 
@@ -24,14 +25,18 @@ export class MainLayout extends React.Component {
 class Main extends React.Component {
   // 组件参数
   userWebService = new UserWebService();
+  // 查询地址库
+  queryString = require('query-string');
 
   constructor(props) {
     super(props);
     this.state = {
       selectedTab: 'homeTab', // 默认选中的 Tab 为首页
+      tabHidden: false
     };
     // 绑定 this
     this.changeRoute = this.changeRoute.bind(this);
+    this.changeTab = this.changeTab.bind(this);
   }
 
   static propTypes = {
@@ -56,12 +61,35 @@ class Main extends React.Component {
         success: (data) => { }
       }
     );
+    this.changeTab();
   }
 
-  componentDidUpdate(prevProps, prevState, snapshot){
+  componentDidUpdate(prevProps, prevState, snapshot) {
     // 判断组件是否更新
-    if (this.props !== prevProps ) {
+    if (this.props !== prevProps) {
       this.changeRoute();
+      this.changeTab();
+    }
+  }
+
+  /**
+   * Tab 栏切换函数 - 根据 Hash 中字段 hideTab 判断是否隐藏导航栏
+   */
+  changeTab(){
+    const {location} = this.props;
+    let hash = this.queryString.parse(location.hash);
+    if ('hideTab' in hash && hash['hideTab'] !== 'false') {
+      this.setState(
+        {
+          tabHidden: true,
+        }
+      );
+    } else {
+      this.setState(
+        {
+          tabHidden: false,
+        }
+      );
     }
   }
 
@@ -71,7 +99,7 @@ class Main extends React.Component {
   changeRoute() {
     let location = this.props.location.pathname;
     let locationUrls = location.substring(1, location.length).split('/');
-    console.log('当前路径:', location, '\n路径分割:', locationUrls);
+    // console.log('当前路径:', location, '\n路径分割:', locationUrls);
     switch (locationUrls[0]) {
       case 'home':
         this.setState(
@@ -102,6 +130,11 @@ class Main extends React.Component {
         );
         break;
       default:
+        this.setState(
+          {
+            selectedTab: null,
+          }
+        );
         break;
     }
   }
@@ -114,6 +147,7 @@ class Main extends React.Component {
           unselectedTintColor="#949494"
           tintColor="#33A3F4"
           barTintColor="white"
+          hidden={this.state.tabHidden}
         >
           <TabBar.Item
             title="首页"
@@ -134,8 +168,8 @@ class Main extends React.Component {
             <Route path="/home" component={Home} />
           </TabBar.Item>
           <TabBar.Item
-            icon={<FontAwesomeIcon icon={faClipboardList} size="lg" />}
-            selectedIcon={<FontAwesomeIcon icon={faClipboardList} size="lg" />}
+            icon={<FontAwesomeIcon icon={faShoppingCart} size="lg" />}
+            selectedIcon={<FontAwesomeIcon icon={faShoppingCart} size="lg" />}
             title="购物车"
             key="cart"
             selected={this.state.selectedTab === 'cartTab'}
@@ -186,6 +220,8 @@ class Main extends React.Component {
             <Route path="/my" component={My} />
           </TabBar.Item>
         </TabBar>
+        {/** 全局路由切换 - route: route */}
+        <Route path="/route/" component={LayoutRoute} />
       </div>
     );
   }
