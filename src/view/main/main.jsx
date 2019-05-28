@@ -8,6 +8,7 @@ import { Home } from "../home/home";
 import { Order } from "../order/order";
 import { My } from "../my/my";
 import { Cart } from '../cart/cart';
+import { LayoutRoute } from '../route/layout/layout';
 import { UserWebService } from '../../service/user/user.web.service'
 import './main.css';
 
@@ -24,14 +25,18 @@ export class MainLayout extends React.Component {
 class Main extends React.Component {
   // 组件参数
   userWebService = new UserWebService();
+  // 查询地址库
+  queryString = require('query-string');
 
   constructor(props) {
     super(props);
     this.state = {
       selectedTab: 'homeTab', // 默认选中的 Tab 为首页
+      tabHidden: false
     };
     // 绑定 this
     this.changeRoute = this.changeRoute.bind(this);
+    this.changeTab = this.changeTab.bind(this);
   }
 
   static propTypes = {
@@ -56,12 +61,35 @@ class Main extends React.Component {
         success: (data) => { }
       }
     );
+    this.changeTab();
   }
 
-  componentDidUpdate(prevProps, prevState, snapshot){
+  componentDidUpdate(prevProps, prevState, snapshot) {
     // 判断组件是否更新
-    if (this.props !== prevProps ) {
+    if (this.props !== prevProps) {
       this.changeRoute();
+      this.changeTab();
+    }
+  }
+
+  /**
+   * Tab 栏切换函数 - 根据 Hash 中字段 hideTab 判断是否隐藏导航栏
+   */
+  changeTab(){
+    const {location} = this.props;
+    let hash = this.queryString.parse(location.hash);
+    if ('hideTab' in hash && hash['hideTab'] !== 'false') {
+      this.setState(
+        {
+          tabHidden: true,
+        }
+      );
+    } else {
+      this.setState(
+        {
+          tabHidden: false,
+        }
+      );
     }
   }
 
@@ -102,6 +130,11 @@ class Main extends React.Component {
         );
         break;
       default:
+        this.setState(
+          {
+            selectedTab: null,
+          }
+        );
         break;
     }
   }
@@ -114,6 +147,7 @@ class Main extends React.Component {
           unselectedTintColor="#949494"
           tintColor="#33A3F4"
           barTintColor="white"
+          hidden={this.state.tabHidden}
         >
           <TabBar.Item
             title="首页"
@@ -186,6 +220,8 @@ class Main extends React.Component {
             <Route path="/my" component={My} />
           </TabBar.Item>
         </TabBar>
+        {/** 全局路由切换 - route: route */}
+        <Route path="/route/" component={LayoutRoute} />
       </div>
     );
   }

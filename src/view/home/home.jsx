@@ -262,6 +262,8 @@ export class Home extends React.Component {
     history.push(location);
   }
 
+
+
   render() {
     /**
      * 元素分隔符
@@ -288,6 +290,7 @@ export class Home extends React.Component {
           rowData={rowData} sectionID={sectionID} rowID={rowID}
           shopItemData={this.state.shopListViewData[rowID]}
           getShopListItemHeight={this.getShopListItemHeight}
+          gotoRouteLocation = {this.gotoRouteLocation}
         />
       );
     };
@@ -482,6 +485,7 @@ class ShopListRowItemRender extends React.Component {
       <div
         ref={this.shopListItem} key={this.props.rowID}
         className="shopList-item"
+        onClick={ ()=> {this.props.gotoRouteLocation(`/route/shopDetail?shopId=${this.props.shopItemData.shopId}#hideTab=true`)}}
       >
         <div className="shopList-item__thumb">
           <img
