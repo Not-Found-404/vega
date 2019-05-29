@@ -334,7 +334,7 @@ export class Home extends React.Component {
           <WingBlank size="md">
             <Flex justify="between">
               <Flex.Item>
-                <div className="menu-container" onClick={()=>{this.gotoRouteLocation('/order')}}>
+                <div className="menu-container" onClick={()=>{this.gotoRouteLocation('/tab/order')}}>
                   <div className="menu-item menu-item__order">
                     <FontAwesomeIcon className="menu-item__icon" icon={faClipboardList} size="2x" />
                   </div>
@@ -342,7 +342,7 @@ export class Home extends React.Component {
                 </div>
               </Flex.Item>
               <Flex.Item>
-                <div className="menu-container" onClick={()=>{this.gotoRouteLocation('/cart')}}>
+                <div className="menu-container" onClick={()=>{this.gotoRouteLocation('/tab/cart')}}>
                   <div className="menu-item menu-item__cart">
                     <FontAwesomeIcon className="menu-item__icon" icon={faShoppingCart} size="2x" />
                   </div>
@@ -350,7 +350,7 @@ export class Home extends React.Component {
                 </div>
               </Flex.Item>
               <Flex.Item>
-                <div className="menu-container" onClick={()=>{this.gotoRouteLocation('/searchGoods')}}>
+                <div className="menu-container" onClick={()=>{this.gotoRouteLocation('/route/searchGoods')}}>
                   <div className="menu-item menu-item__search">
                     <FontAwesomeIcon className="menu-item__icon" icon={faSearch} size="2x" />
                   </div>
@@ -358,7 +358,7 @@ export class Home extends React.Component {
                 </div>
               </Flex.Item>
               <Flex.Item>
-                <div className="menu-container" onClick={()=>{this.gotoRouteLocation('/my')}}>
+                <div className="menu-container" onClick={()=>{this.gotoRouteLocation('/tab/my')}}>
                   <div className="menu-item menu-item__user">
                     <FontAwesomeIcon className="menu-item__icon" icon={faUser} size="2x" />
                   </div>
