@@ -8,21 +8,6 @@ import { faPhone, faEnvelope } from '@fortawesome/free-solid-svg-icons'
 import { ShopWebService } from '../../../service/shop/shop.web.service'
 import './shop-detail.css';
 
-
-const tabs = [
-  { title: 'First Tab' },
-  { title: 'Second Tab' },
-  { title: 'Third Tab' },
-];
-
-function renderTabBar(props) {
-  return (
-    <Sticky>
-      {({ style }) => <div style={{ ...style, zIndex: 1 }}><Tabs.DefaultTabBar {...props} /></div>}
-    </Sticky>
-  );
-}
-
 export class ShopDetail extends React.Component {
   shopWebService = new ShopWebService();
   constructor(props) {
@@ -72,11 +57,11 @@ export class ShopDetail extends React.Component {
   }
 
   /**
-     * 店铺元素标签内容-函数组件
-     */
+   * 店铺元素标签内容-函数组件
+   */
   shopItemTags = (tagsData) => {
     let shopTagRender = [];
-    if(tagsData.length > 0){
+    if (tagsData.length > 0) {
       tagsData.forEach(
         (element) => {
           shopTagRender.push(
@@ -92,8 +77,6 @@ export class ShopDetail extends React.Component {
     } else {
       return <span>无标签</span>
     }
-
-
   };
 
   render() {
@@ -119,7 +102,7 @@ export class ShopDetail extends React.Component {
                       <Icon key="1" type="ellipsis" />,
                     ]}
                   >
-                    星巴克 - 皇家理工旗舰店
+                    {this.state.shopInfoData ? this.state.shopInfoData.name : null}
                   </NavBar>
                 </div>
               }
@@ -140,7 +123,7 @@ export class ShopDetail extends React.Component {
 
                 <div className="shop-header__info">
                   <div className="shop-header__info-thumb">
-                    <img className="shop-header__info-thumb-img" alt="Shop" src={this.state.shopInfoData ? this.state.shopInfoData.imageUrl : ''} />
+                    <img className="shop-header__info-thumb-img" alt="Shop" src={this.state.shopInfoData ? encodeURI(this.state.shopInfoData.imageUrl) : ''} />
                   </div>
                   <div className="shop-header__info-name">
                     {this.state.shopInfoData ? this.state.shopInfoData.name : null}
@@ -174,19 +157,17 @@ export class ShopDetail extends React.Component {
               {/* 内容区域 */}
               <div className="shop-content">
                 <StickyContainer>
-                  <Tabs tabs={tabs}
-                    initalPage={'1'}
-                    renderTabBar={renderTabBar}
+                  <Tabs
+                    tabs={[ { title: '点餐' }, { title: '评价' } ]} // tab数据
+                    initalPage={1} // 初始化Tab, index or key
+                    renderTabBar={renderTabBar} // 替换TabBar
                   >
                     <div style={{ display: 'flex', height: '100em', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' }}>
                       Content of first tab
-                  </div>
+                    </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '250px', backgroundColor: '#fff' }}>
                       Content of second tab
-                  </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '250px', backgroundColor: '#fff' }}>
-                      Content of third tab
-                  </div>
+                    </div>
                   </Tabs>
                 </StickyContainer>
               </div>
@@ -198,9 +179,45 @@ export class ShopDetail extends React.Component {
     } else {
       return null;
     }
-
   }
 
 }
 
 ShopDetail = withRouter(ShopDetail);
+
+/**
+ * 标签页标签头渲染组件 - 粘滞顶部内容
+ */
+function renderTabBar(props) {
+  return (
+    <Sticky>
+      {({ style, isSticky  }) => {
+        return (
+          <div style={{ ...style, zIndex: 1, marginTop: isSticky ? 45 : 0 }}>
+            <Tabs.DefaultTabBar {...props} />
+          </div>
+        );
+      }
+
+      }
+    </Sticky>
+  );
+}
+
+class Order extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  componentDidMount() {
+
+  }
+
+  render() {
+    return (
+      <div>
+
+      </div>
+    );
+  }
+}
