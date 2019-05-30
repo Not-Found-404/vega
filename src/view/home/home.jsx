@@ -485,7 +485,7 @@ class ShopListRowItemRender extends React.Component {
       <div
         ref={this.shopListItem} key={this.props.rowID}
         className="shopList-item"
-        onClick={ ()=> {this.props.gotoRouteLocation(`/route/shopDetail?shopId=${this.props.shopItemData.shopId}#hideTab=true`)}}
+        onClick={ ()=> {this.props.gotoRouteLocation(`/route/shopDetail?shopId=${this.props.shopItemData.shopId}`)}}
       >
         <div className="shopList-item__thumb">
           <img
