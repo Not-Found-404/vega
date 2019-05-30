@@ -38,7 +38,7 @@ class Main extends React.Component {
 
   componentDidMount() {
     // 默认路由跳转到 Tab 页
-    this.props.history.push('/tab/home');
+    // this.props.history.push('/tab/home');
     // 登录用户
     this.userWebService.login(
       {
@@ -91,7 +91,7 @@ class TabLayout extends React.Component {
     // 装载组件进行 Tab 跳转
     this.changeRoute();
     // 默认路由跳转
-    this.props.history.push('/tab/home/');
+    // this.props.history.push('/tab/home/');
     this.changeTab();
   }
 
