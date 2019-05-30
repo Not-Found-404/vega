@@ -162,12 +162,10 @@ export class ShopDetail extends React.Component {
                     initalPage={1} // 初始化Tab, index or key
                     renderTabBar={renderTabBar} // 替换TabBar
                   >
-                    <div style={{ display: 'flex', height: '100em', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' }}>
-                      Content of first tab
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '250px', backgroundColor: '#fff' }}>
-                      Content of second tab
-                    </div>
+                    {/* 点餐界面 */}
+                    <Order />
+                    {/* 评价界面 */}
+                    <Remark />
                   </Tabs>
                 </StickyContainer>
               </div>
@@ -190,15 +188,14 @@ ShopDetail = withRouter(ShopDetail);
  */
 function renderTabBar(props) {
   return (
-    <Sticky>
+    <Sticky topOffset={-45}>
       {({ style, isSticky  }) => {
-        return (
-          <div style={{ ...style, zIndex: 1, marginTop: isSticky ? 45 : 0 }}>
-            <Tabs.DefaultTabBar {...props} />
-          </div>
-        );
-      }
-
+          return (
+            <div style={{ ...style, zIndex: 1, marginTop: isSticky ? 45 : 0}}>
+              <Tabs.DefaultTabBar {...props} />
+            </div>
+          );
+        }
       }
     </Sticky>
   );
@@ -215,8 +212,26 @@ class Order extends React.Component {
 
   render() {
     return (
-      <div>
+      <div className="order-layout" style={{height: document.documentElement.clientHeight - 60}}>
+        <h1>点餐界面</h1>
+      </div>
+    );
+  }
+}
 
+class Remark extends React.Component {
+  constructor(props){
+    super(props);
+  }
+
+  componentDidMount(){
+
+  }
+
+  render(){
+    return (
+      <div className="remark-layout">
+        <h1>评论界面</h1>
       </div>
     );
   }
