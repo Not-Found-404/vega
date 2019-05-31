@@ -11,7 +11,7 @@ export class ShopWebService extends ShopCommonService {
      * @param request
      */
     shopGetDetail = (request) => {
-        this.post({
+        this.get({
             url: '/api/web/shop/get/detail',
             request: request
         });
