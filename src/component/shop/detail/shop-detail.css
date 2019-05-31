@@ -232,3 +232,11 @@
   justify-content: center;
   color: #108ee9;
 }
+.selectStandard-layout{
+  width: 100%;
+}
+.selectStandard-item{
+  height: 1em;
+  width: 100%;
+  background-color: #108ee9;
+}
