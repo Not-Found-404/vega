@@ -114,6 +114,9 @@
   width: 100%;
   background-color: #ffffff;
 }
+.shopGoodsList-container{
+  width: 100%;
+}
 .order-category__item-category{
   height: 4em;
   display: flex;
@@ -121,7 +124,10 @@
   align-items: center;
   justify-content: center;
   font-size: 0.9em;
-  /* color: #7D7D7D; */
+  color: rgb(92, 92, 92);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
 }
 .order-category__item-category__select{
   color: #000000;
@@ -132,8 +138,9 @@
   flex-direction: row;
   align-items: center;
   height: 8.9em;
+  width: 100%;
   padding: 0.2em;
-  background-color: aqua;
+  overflow: hidden;
 }
 .order-goods__thumb{
   width: 8.5em;
@@ -148,13 +155,80 @@
   width: 8.5em;
   height: 8.5em;
 }
+
+/* 限定此容器的大小进行内容折行 */
 .order-goods__content{
+  width: 100%;
+  padding: 0.3em 0.3em;
   display: flex;
   flex-direction: column;
-  padding-left: 0.2em;
-  padding-right: 0.2em;
+  justify-content: space-between;
+  height: 100%;
+  overflow: hidden;
+}
+.order-goods__content-name{
+  width: 100%;
+  font-size: 1.1em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.order-goods__content-advertise{
+  font-size: 0.75em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .order-goods__content-sale{
   display: flex;
   flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.order-goods__content-left{
+  height: 100%;
+  width: 100%;
+}
+.order-goods__content-right{
+  width: 2.5em;
+  height: 100%;
+}
+.order-goods__control-item{
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.order-goods__content-info{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 0.5;
+}
+.order-goods__info-item{
+  font-size: 0.9em;
+}
+.order-goods__content-info>.order-goods__info-item:not(:last-child){
+  margin-right: 0.5em;
+}
+.order-goods__info-stock{
+  margin-left: 0.2em;
+}
+.order-goods__content-price{
+  margin-top: 1em;
+  color: red;
+}
+.order-goods__content-price__prefix{
+  font-size: 0.9em;
+}
+.order-goods__content-price__content{
+  font-size: 1.3em;
+}
+.order-goods__control-buy{
+  width: 2em;
+  height: 2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #108ee9;
 }

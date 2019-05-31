@@ -5,7 +5,7 @@ import classnames from 'classnames'; // className 操作库
 import PropTypes from "prop-types";
 import { NavBar, Icon, Tabs, ListView } from 'antd-mobile';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPhone, faEnvelope } from '@fortawesome/free-solid-svg-icons'
+import { faPhone, faEnvelope, faPlusCircle } from '@fortawesome/free-solid-svg-icons'
 import { ShopWebService } from '../../../service/shop/shop.web.service'
 import './shop-detail.css';
 
@@ -234,7 +234,7 @@ class Order extends React.Component {
       shopCategoryListViewData,
       shopGoodsListViewData,
       // 选中店铺类别映射
-      shopCategorySelectIndex: 0,
+      shopCategorySelectId: 0,
     }
 
     // 绑定 this
@@ -251,7 +251,8 @@ class Order extends React.Component {
     );
     // 数据预处理
     this.processShopCategoryData();
-    this.initShopGoodsData(this.state.shopCategorySelectIndex);
+    // 初始化店铺类目商品信息 - 默认第一个商品类目
+    this.initShopGoodsData(this.state.shopCategoryListData[0].shopCategoryId);
   }
 
   /**
@@ -268,12 +269,13 @@ class Order extends React.Component {
       dataBlobs['shopCategoryListSection 1'] = 'shopCategoryListSection 1';
       this.state.shopCategoryListData.forEach(
         (current, index) => {
-          categoryRowIDs[0].push(index);
-          dataBlobs[index] = index;
+          categoryRowIDs[0].push(current.shopCategoryId);
+          dataBlobs[current.shopCategoryId] = current.shopCategoryId;
         }
       );
       this.setState(
         {
+          shopCategorySelectId: this.state.shopCategoryListData[0].shopCategoryId,
           shopCategoryListViewData: this.state.shopCategoryListViewData.cloneWithRowsAndSections(dataBlobs, categorySectionIDs, categoryRowIDs), // ReactNative 克隆视图数据
         }
       );
@@ -285,22 +287,24 @@ class Order extends React.Component {
   /**
    * 初始化店铺类别商品
    */
-  initShopGoodsData(shopCategoryIndex) {
+  initShopGoodsData(shopCategoryId) {
     // 处理店铺类别商品列表数据映射
     let goodsSectionIDs = [];
     let goodsRowIDs = [];
     let dataBlobs = {};
     if (this.state.shopCategoryListData.length > 0) {
-      goodsSectionIDs.push('goodsListSection 1');
+      goodsSectionIDs.push(shopCategoryId);
       goodsRowIDs.push([]);
-      dataBlobs['goodsListSection 1'] = 'goodsListSection 1';
-      let shopCategoryGoods = this.state.shopCategoryListData[shopCategoryIndex].itemThinResponseList;
-      shopCategoryGoods.forEach(
-        (current, index) => {
-          goodsRowIDs[0].push(index);
-          dataBlobs[index] = index;
+      dataBlobs[shopCategoryId] = shopCategoryId;
+      let shopCategoryGoods = this.state.shopCategoryListData.filter((elem) => elem.shopCategoryId === shopCategoryId);
+      // console.log('shopCategoryId:', shopCategoryId, '\nshopCategoryGoods:', shopCategoryGoods[0]);
+      shopCategoryGoods[0].itemThinResponseList.forEach(
+        (current) => {
+          goodsRowIDs[0].push(current.itemId);
+          dataBlobs[current.itemId] = current.itemId;
         }
       );
+      // console.log('dataBlobs:', dataBlobs);
       this.setState(
         {
           // 通知视图更新界面
@@ -315,13 +319,27 @@ class Order extends React.Component {
   /**
    * 选择店铺类别事件
    */
-  selectedCategoryChange = (index) => {
+  selectedCategoryChange = (shopCategoryId) => {
     this.setState(
       {
-        shopCategorySelectIndex: index,
+        shopCategorySelectId: shopCategoryId,
       }
     );
-    this.initShopGoodsData(index);
+    this.initShopGoodsData(shopCategoryId);
+  }
+
+  /**
+   * 通过类别ID获取店铺类别名
+   */
+  getShopCategoryNameById = (shopCategoryId) => {
+    let shopCategory = this.state.shopCategoryListData.filter(
+      (elem) => {
+        return elem.shopCategoryId === shopCategoryId;
+      }
+    )
+    return (
+      shopCategory.length > 0 ? shopCategory[0].name : null
+    );
   }
 
   render() {
@@ -330,7 +348,7 @@ class Order extends React.Component {
     const shopCategoryItemRender = (rowData, sectionID, rowID) => {
       let shopCategoryItemClass = classnames({
         'order-category__item-category': true,
-        'order-category__item-category__select': this.state.shopCategorySelectIndex === rowID,
+        'order-category__item-category__select': this.state.shopCategorySelectId === rowID,
       });
       // console.log('渲染行数据源:\nrowData:', rowData, 'sectionId:', sectionID, 'rowId:', rowID);
       return (
@@ -338,7 +356,7 @@ class Order extends React.Component {
           className={shopCategoryItemClass} key={rowID}
           onClick={() => { this.selectedCategoryChange(rowID) }}
         >
-          {this.state.shopCategoryListData[rowID].name}
+          {this.getShopCategoryNameById(rowID)}
         </div>
       );
     };
@@ -346,6 +364,8 @@ class Order extends React.Component {
     // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
     const shopGoodsItemRender = (rowData, sectionID, rowID) => {
       // console.log('渲染行数据源:\nrowData:', rowData, 'sectionId:', sectionID, 'rowId:', rowID);
+      let shopCategoryGoodsData = this.state.shopCategoryListData.filter((elem)=>elem.shopCategoryId===this.state.shopCategorySelectId)[0]
+        .itemThinResponseList.filter((elem)=>elem.itemId === rowID)[0];
       return (
         <div
           className='order-goods__item' key={rowID}
@@ -353,27 +373,40 @@ class Order extends React.Component {
           <div className="order-goods__thumb">
             <img
               className="order-goods__thumb-img" alt="Goods"
-              src="https://img.meituan.net/msmerchant/a9e5f3a04061c1be252551380d208e2a519326.jpg"
+              src={shopCategoryGoodsData.mainImage}
             />
           </div>
           <div className="order-goods__content">
             <div className="order-goods__content-name">
-              焦糖拿铁星冰乐
+              {shopCategoryGoodsData.name}
             </div>
             <div className="order-goods__content-advertise">
-              爱上这口沉醉，咖啡融合冰激凌
+              {shopCategoryGoodsData.advertise}
             </div>
             <div className="order-goods__content-sale">
               <div className="order-goods__content-left">
                 <div className="order-goods__content-info">
-
+                  {/* 商品信息项 */}
+                  <div className="order-goods__info-item">
+                    <span>库存</span>
+                    <span className="order-goods__info-stock">
+                      {shopCategoryGoodsData.inventory}
+                    </span>
+                  </div>
                 </div>
                 <div className="order-goods__content-price">
-
+                  <span className="order-goods__content-price__prefix">￥</span>
+                  <span className="order-goods__content-price__content">
+                    {shopCategoryGoodsData.price}
+                  </span>
                 </div>
               </div>
               <div className="order-goods__content-right">
-
+                <div className="order-goods__control-item">
+                  <div className="order-goods__control-buy">
+                    <FontAwesomeIcon className="order-goods__control-buy__icon" icon={faPlusCircle} size="lg" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
