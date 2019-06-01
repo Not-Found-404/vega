@@ -162,6 +162,7 @@ export class ShopDetail extends React.Component {
                     tabs={[{ title: '点餐' }, { title: '评价' }]} // tab数据
                     initalPage={1} // 初始化Tab, index or key
                     renderTabBar={renderTabBar} // 替换TabBar
+                    swipeable={false}
                   >
                     {/* 点餐界面 */}
                     <Order
@@ -238,7 +239,7 @@ class Order extends React.Component {
       // 店铺类别商品属性
       shopGoodsAttribute: null,
       shopSelectedGoodsId: null,
-      showChooseStandardModal: false,
+      showChooseStandardModal: true,
     }
 
     // 绑定 this
@@ -258,7 +259,7 @@ class Order extends React.Component {
     // 数据预处理
     this.processShopCategoryData();
     // 初始化店铺类目商品信息 - 默认第一个商品类目
-    this.initShopGoodsData(this.state.shopCategoryListData[0].shopCategoryId);
+    this.initShopGoodsData(this.state.shopCategoryListData.length > 0 ? this.state.shopCategoryListData[0].shopCategoryId : null);
   }
 
   /**
@@ -283,7 +284,7 @@ class Order extends React.Component {
         {
           shopCategorySelectId: this.state.shopCategoryListData[0].shopCategoryId,
           shopCategoryListViewData: this.state.shopCategoryListViewData.cloneWithRowsAndSections(dataBlobs, categorySectionIDs, categoryRowIDs), // ReactNative 克隆视图数据
-          shopGoodsAttribute: this.state.shopCategoryListData[0].itemThinResponseList[0].attribute,  // 获取第一个类目的第一个商品的属性信息
+          shopGoodsAttribute: Object.keys(this.state.shopCategoryListData[0].itemThinResponseList[0].attribute).length > 0 ? this.state.shopCategoryListData[0].itemThinResponseList[0].attribute : [],  // 获取第一个类目的第一个商品的属性信息
         }
       );
     } else {
@@ -299,7 +300,7 @@ class Order extends React.Component {
     let goodsSectionIDs = [];
     let goodsRowIDs = [];
     let dataBlobs = {};
-    if (this.state.shopCategoryListData.length > 0) {
+    if (this.state.shopCategoryListData.length > 0 && shopCategoryId) {
       goodsSectionIDs.push(shopCategoryId);
       goodsRowIDs.push([]);
       dataBlobs[shopCategoryId] = shopCategoryId;
@@ -353,18 +354,28 @@ class Order extends React.Component {
    * 选择商品规格
    */
   chooseGoodsStandard(selectGoodsId) {
+    let _shopGoodsAttribute =
+      this.state.shopCategoryListData.filter((elem) => (elem.shopCategoryId === this.state.shopCategorySelectId))[0]
+      .itemThinResponseList.filter((elem) => (elem.itemId === selectGoodsId))[0].attribute;
+    if (_shopGoodsAttribute && Object.keys(_shopGoodsAttribute).length > 0) {
+      let _shopGoodsAttribute =
+        this.state.shopCategoryListData.filter((elem) => (elem.shopCategoryId === this.state.shopCategorySelectId))[0]
+          .itemThinResponseList.filter((elem) => (elem.itemId === selectGoodsId))[0].attribute;
+      console.log('categoryId：', this.state.shopCategorySelectId, '\nselectGoodsId: ', selectGoodsId, "\n_shopGoodsAttribute", _shopGoodsAttribute);
+      // 显示弹窗
+      this.setState({
+        shopSelectedGoodsId: selectGoodsId,
+        shopGoodsAttribute: _shopGoodsAttribute,  // 获取第一个类目的第一个商品的属性信息
+        showChooseStandardModal: true,
+      });
+    }
 
-    // 显示弹窗
-    this.setState({
-      showChooseStandardModal: true,
-      shopSelectedGoodsId: selectGoodsId,
-    });
   }
 
   /**
    * 关闭选择商品规格弹出框
    */
-  closeChooseGoodsStandard(){
+  closeChooseGoodsStandard() {
     this.setState({
       showChooseStandardModal: false,
     });
@@ -431,7 +442,7 @@ class Order extends React.Component {
               </div>
               <div className="order-goods__content-right">
                 <div className="order-goods__control-item">
-                  <div className="order-goods__control-buy" onClick={()=>{this.chooseGoodsStandard(shopCategoryGoodsData.itemId);}}>
+                  <div className="order-goods__control-buy" onClick={() => { this.chooseGoodsStandard(shopCategoryGoodsData.itemId); }}>
                     <FontAwesomeIcon className="order-goods__control-buy__icon" icon={faPlusCircle} size="lg" />
                   </div>
                 </div>
@@ -497,7 +508,7 @@ class Order extends React.Component {
             scrollRenderAheadDistance={500}
           />
         </div>
-        {/* 窗口组件 */}
+        {/* 选择商品类别-窗口组件 */}
         <ChooseGoodsStandard
           shopGoodsAttribute={this.state.shopGoodsAttribute}
           shopSelectedGoodsId={this.state.shopSelectedGoodsId}
@@ -539,6 +550,7 @@ function ShopGoodsListBodyContainer(props) {
  * 购买商品选择规格对话框
  */
 class ChooseGoodsStandard extends React.Component {
+
   constructor(props) {
     super(props);
     // ListView 数据初始化
@@ -553,21 +565,35 @@ class ChooseGoodsStandard extends React.Component {
     // 初始化属性状态
     this.state = {
       shopGoodsAttributeListViewData, // 商品属性视图数据
+      checkOptionMap: {}, // 商品属性选项映射
     };
 
     this.initShopGoodsAttribute = this.initShopGoodsAttribute.bind(this);
     this.closest = this.closest.bind(this);
+    this.onWrapTouchStart = this.onWrapTouchStart.bind(this);
+    this.changeAttributeSelectOption = this.changeAttributeSelectOption.bind(this);
   }
 
   componentDidMount() {
     console.log('props:', this.props);
+    this.initShopGoodsAttribute();
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     // 判断组件是否更新
-    if (this.props !== prevProps) {
+    if (this.props.shopSelectedGoodsId !== prevProps.shopSelectedGoodsId) {
       console.log('props:', this.props);
+      this.initShopGoodsAttribute();
     }
+  }
+
+  static getDerivedStateFromProps(props, state) {
+    if (props !== state) {
+      return {
+        props
+      };
+    }
+    return null;
   }
 
   /**
@@ -605,21 +631,25 @@ class ChooseGoodsStandard extends React.Component {
     let categorySectionIDs = [];
     let categoryRowIDs = [];
     let dataBlobs = {};
+    let checkOptionMap = {};
     let attribute = this.props.shopGoodsAttribute;
+    console.log('初始化商品规格数据:\nAttribute:', attribute, '\nshopSelectedGoodsId:', this.props.shopSelectedGoodsId);
     if (attribute) {
       categorySectionIDs.push(this.props.shopSelectedGoodsId);
       categoryRowIDs.push([]);
       dataBlobs[this.props.shopSelectedGoodsId] = this.props.shopSelectedGoodsId;
       Object.keys(attribute).forEach(
         (keyName, index) => {
-          categoryRowIDs[0].push(attribute.keyName);
-          dataBlobs[attribute.keyName] = attribute.keyName;
+          categoryRowIDs[0].push(keyName);
+          dataBlobs[keyName] = keyName;
+          checkOptionMap[keyName] = attribute[keyName][0]; // 商品规格默认选中第一项
         }
       );
+      console.log('defaultCheckOptionMap:', checkOptionMap, '\ndataBlobs:', dataBlobs, '\ncategoryRowIDs:', categoryRowIDs, '\ncategorySectionIDs:', categorySectionIDs);
       this.setState(
         {
-          shopGoodsAttribute: this.state.shopCategoryListData[0].itemThinResponseList[0].attribute,  // 获取第一个类目的第一个商品的属性信息
-          shopGoodsAttributeListViewData : this.state.shopGoodsAttributeListViewData.cloneWithRowsAndSections(dataBlobs, categorySectionIDs, categoryRowIDs),
+          shopGoodsAttributeListViewData: this.state.shopGoodsAttributeListViewData.cloneWithRowsAndSections(dataBlobs, categorySectionIDs, categoryRowIDs),
+          checkOptionMap: checkOptionMap,
         }
       );
     } else {
@@ -627,21 +657,62 @@ class ChooseGoodsStandard extends React.Component {
     }
   }
 
-  render() {
+  /**
+   * 改变商品规格选中内容
+   */
+  changeAttributeSelectOption(goodsAttribute, selectedOption) {
+    let _checkOptionMap = this.state.checkOptionMap;
+    _checkOptionMap[goodsAttribute] = selectedOption;
+    this.setState(
+      {
+        checkOptionMap: _checkOptionMap,
+      }
+    );
+  }
 
+  render() {
     // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
     const shopGoodsAttributeItemRender = (rowData, sectionID, rowID) => {
       // console.log('渲染行数据源:\nrowData:', rowData, 'sectionId:', sectionID, 'rowId:', rowID);
+      let goodsAttributeOption = this.props.shopGoodsAttribute[rowID] ? this.props.shopGoodsAttribute[rowID] : [];
+      let checkOptionMapValue = this.state.checkOptionMap[rowID] ? this.state.checkOptionMap[rowID] : {};
+      // console.log('sectionID:', sectionID, 'rowID:', rowID, '\n映射组:', this.state.checkOptionMap, '\nAttribute:', this.props.shopGoodsAttribute);
+      /**
+       * 渲染商品规格选项
+       */
+      const renderGoodsAttributeOption = (optionList) => {
+        if (optionList) {
+          return optionList.map(
+            (elem, index) => {
+              // 记录渲染样式
+              let checkOptionClassnames = classnames({
+                'selectStandard-item__option-item': true,
+                'selectStandard-item__option-item__selected': checkOptionMapValue === elem,
+              });
+              return (
+                <div
+                  key={elem + Math.random().toString().substring(2, 7)}
+                  className={checkOptionClassnames}
+                  onClick={() => { this.changeAttributeSelectOption(rowID, elem) }}
+                >
+                  {elem}
+                </div>
+              );
+            }
+          );
+        }
+      };
+
       return (
         <div
-          key={rowID}
+          key={rowID + Math.random().toString().substring(2, 7)}
           className="selectStandard-item"
         >
           <div className="selectStandard-item__name">
-
+            <span>{rowID}:</span>
           </div>
           <div className="selectStandard-item__option">
-
+            {renderGoodsAttributeOption(goodsAttributeOption)}
           </div>
         </div>
       );
@@ -654,7 +725,7 @@ class ChooseGoodsStandard extends React.Component {
         closable
         onClose={() => { this.props.closeModal() }}
         title="选择商品规格"
-        footer={[{ text: 'Ok', onPress: () => { this.props.closeModal() } }]}
+        footer={[{ text: '添加购物车', onPress: () => { this.props.closeModal() } }]}
         wrapProps={{ onTouchStart: this.onWrapTouchStart }}
         afterClose={() => { console.log('After Close'); }}
       >
