@@ -1,19 +1,21 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, withRouter } from "react-router-dom";
-import { StickyContainer, Sticky } from 'react-sticky';
+import { faEnvelope, faPhone, faPlusCircle } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Icon, ListView, Modal, NavBar, Tabs, Toast } from 'antd-mobile';
 import classnames from 'classnames'; // className 操作库
 import PropTypes from "prop-types";
-import { NavBar, Icon, Tabs, ListView, Modal } from 'antd-mobile';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPhone, faEnvelope, faPlusCircle } from '@fortawesome/free-solid-svg-icons'
-import { ShopWebService } from '../../../service/shop/shop.web.service'
+import React from 'react';
+import { withRouter } from "react-router-dom";
+import { Sticky, StickyContainer } from 'react-sticky';
+import { CartWebService } from '../../../service/cart/cart.web.service';
+import { ShopWebService } from '../../../service/shop/shop.web.service';
 import './shop-detail.css';
 
 export class ShopDetail extends React.Component {
+  // 服务
   shopWebService = new ShopWebService();
+  cartWebService = new CartWebService();
   constructor(props) {
     super(props);
-
     // 初始化获取店铺编号
     const { location, match, history } = this.props;
     // console.log('location:', location, '\nmatch:', match, '\nhistory:', history);
@@ -247,6 +249,7 @@ class Order extends React.Component {
     this.initShopGoodsData = this.initShopGoodsData.bind(this);
     this.chooseGoodsStandard = this.chooseGoodsStandard.bind(this);
     this.closeChooseGoodsStandard = this.closeChooseGoodsStandard.bind(this);
+    this.addGoodsToCart = this.addGoodsToCart.bind(this);
   }
 
   componentDidMount() {
@@ -351,12 +354,34 @@ class Order extends React.Component {
   }
 
   /**
+   * 添加商品到购物车
+   * @param {string} goodsId - 商品编号
+   * @param {any} goodsAttributes - 商品属性信息
+   * @author BillowsTao
+   */
+  addGoodsToCart(goodsId, goodsAttributes, quantity){
+    // 调用服务更新购物车数据
+    this.cartWebService.updateCart(
+      {
+        itemAttribute: goodsAttributes ? goodsAttributes : null, // 商品属性
+        itemId: goodsId, //
+        quantity: quantity > 0 ? quantity : 1,
+        success: (res) => {
+          Toast.success('已添加到购物车');
+          this.closeChooseGoodsStandard();
+        },
+      }
+    );
+  }
+
+  /**
    * 选择商品规格
    */
   chooseGoodsStandard(selectGoodsId) {
     let _shopGoodsAttribute =
       this.state.shopCategoryListData.filter((elem) => (elem.shopCategoryId === this.state.shopCategorySelectId))[0]
       .itemThinResponseList.filter((elem) => (elem.itemId === selectGoodsId))[0].attribute;
+    // 当前商品存在商品属性信息选择
     if (_shopGoodsAttribute && Object.keys(_shopGoodsAttribute).length > 0) {
       let _shopGoodsAttribute =
         this.state.shopCategoryListData.filter((elem) => (elem.shopCategoryId === this.state.shopCategorySelectId))[0]
@@ -365,11 +390,13 @@ class Order extends React.Component {
       // 显示弹窗
       this.setState({
         shopSelectedGoodsId: selectGoodsId,
-        shopGoodsAttribute: _shopGoodsAttribute,  // 获取第一个类目的第一个商品的属性信息
+        shopGoodsAttribute: _shopGoodsAttribute,  //` 获取第一个类目的第一个商品的属性信息
         showChooseStandardModal: true,
       });
+    } else {
+      // 当前商品不存在商品属性信息
+      this.addGoodsToCart(selectGoodsId, null, 1);
     }
-
   }
 
   /**
