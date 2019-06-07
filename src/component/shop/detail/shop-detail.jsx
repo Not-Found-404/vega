@@ -13,7 +13,6 @@ import './shop-detail.css';
 export class ShopDetail extends React.Component {
   // 服务
   shopWebService = new ShopWebService();
-  cartWebService = new CartWebService();
   constructor(props) {
     super(props);
     // 初始化获取店铺编号
@@ -212,6 +211,8 @@ function renderTabBar(props) {
  * 点餐组件
  */
 class Order extends React.Component {
+  // 服务
+  cartWebService = new CartWebService();
   constructor(props) {
     super(props);
     // ListView 数据初始化
@@ -241,7 +242,7 @@ class Order extends React.Component {
       // 店铺类别商品属性
       shopGoodsAttribute: null,
       shopSelectedGoodsId: null,
-      showChooseStandardModal: true,
+      showChooseStandardModal: false,
     }
 
     // 绑定 this
@@ -360,14 +361,19 @@ class Order extends React.Component {
    * @author BillowsTao
    */
   addGoodsToCart(goodsId, goodsAttributes, quantity){
+    console.log('函数参数:', [].concat(...arguments));
     // 调用服务更新购物车数据
     this.cartWebService.updateCart(
       {
-        itemAttribute: goodsAttributes ? goodsAttributes : null, // 商品属性
-        itemId: goodsId, //
-        quantity: quantity > 0 ? quantity : 1,
+        // 传输参数
+        params: {
+          itemAttribute: goodsAttributes ? goodsAttributes : null, // 商品属性
+          itemId: goodsId, //
+          quantity: quantity > 0 ? quantity : 1,
+        },
+        // 成功回调函数
         success: (res) => {
-          Toast.success('已添加到购物车');
+          Toast.success('添加到购物车');
           this.closeChooseGoodsStandard();
         },
       }
@@ -409,7 +415,6 @@ class Order extends React.Component {
   }
 
   render() {
-
     // 从数据源(data source)中接受一条数据，以及它和它所在 section 的 ID。返回一个可渲染的组件来为这行数据进行渲染。
     const shopCategoryItemRender = (rowData, sectionID, rowID) => {
       let shopCategoryItemClass = classnames({
@@ -541,6 +546,7 @@ class Order extends React.Component {
           shopSelectedGoodsId={this.state.shopSelectedGoodsId}
           showChooseStandardModal={this.state.showChooseStandardModal}
           closeModal={this.closeChooseGoodsStandard}
+          addGoodsToCart={this.addGoodsToCart}
         />
       </div>
     );
@@ -577,7 +583,8 @@ function ShopGoodsListBodyContainer(props) {
  * 购买商品选择规格对话框
  */
 class ChooseGoodsStandard extends React.Component {
-
+  // 服务
+  cartWebService = new CartWebService();
   constructor(props) {
     super(props);
     // ListView 数据初始化
@@ -599,6 +606,7 @@ class ChooseGoodsStandard extends React.Component {
     this.closest = this.closest.bind(this);
     this.onWrapTouchStart = this.onWrapTouchStart.bind(this);
     this.changeAttributeSelectOption = this.changeAttributeSelectOption.bind(this);
+    this.addToCart = this.addToCart.bind(this);
   }
 
   componentDidMount() {
@@ -608,7 +616,7 @@ class ChooseGoodsStandard extends React.Component {
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     // 判断组件是否更新
-    if (this.props.shopSelectedGoodsId !== prevProps.shopSelectedGoodsId) {
+    if ((this.props.showChooseStandardModal !== prevProps.showChooseStandardModal) && this.props.shopSelectedGoodsId ) {
       console.log('props:', this.props);
       this.initShopGoodsAttribute();
     }
@@ -655,6 +663,7 @@ class ChooseGoodsStandard extends React.Component {
    * 处理商品属性数据
    */
   initShopGoodsAttribute() {
+    console.log('调用初始化');
     let categorySectionIDs = [];
     let categoryRowIDs = [];
     let dataBlobs = {};
@@ -662,7 +671,7 @@ class ChooseGoodsStandard extends React.Component {
     let attribute = this.props.shopGoodsAttribute;
     console.log('初始化商品规格数据:\nAttribute:', attribute, '\nshopSelectedGoodsId:', this.props.shopSelectedGoodsId);
     if (attribute) {
-      categorySectionIDs.push(this.props.shopSelectedGoodsId);
+      categorySectionIDs.push(`${this.props.shopSelectedGoodsId.toString()}-${Math.random().toString().substr(2,4)}`);
       categoryRowIDs.push([]);
       dataBlobs[this.props.shopSelectedGoodsId] = this.props.shopSelectedGoodsId;
       Object.keys(attribute).forEach(
@@ -693,6 +702,29 @@ class ChooseGoodsStandard extends React.Component {
     this.setState(
       {
         checkOptionMap: _checkOptionMap,
+      }
+    );
+  }
+
+  /**
+   * 提交商品到购物车
+   */
+  addToCart(){
+    // 关闭模态框
+    this.props.closeModal();
+    // 提交商品到购物车
+    this.cartWebService.updateCart(
+      {
+        // 传输参数
+        params: {
+          itemAttribute: this.state.checkOptionMap ? this.state.checkOptionMap : null, // 商品属性
+          itemId: this.props.shopSelectedGoodsId, //
+          quantity: 1,
+        },
+        // 成功回调函数
+        success: (res) => {
+          Toast.success('添加到购物车');
+        },
       }
     );
   }
@@ -752,7 +784,15 @@ class ChooseGoodsStandard extends React.Component {
         closable
         onClose={() => { this.props.closeModal() }}
         title="选择商品规格"
-        footer={[{ text: '添加购物车', onPress: () => { this.props.closeModal() } }]}
+        // 弹出框确认
+        footer={
+          [{
+            text: '添加购物车',
+            onPress: () => {
+              this.addToCart();
+            }
+          }]
+        }
         wrapProps={{ onTouchStart: this.onWrapTouchStart }}
         afterClose={() => { console.log('After Close'); }}
       >
