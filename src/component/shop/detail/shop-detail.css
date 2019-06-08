@@ -169,12 +169,14 @@
 .order-goods__content-name{
   width: 100%;
   font-size: 1.1em;
+  /* 此处不能使用 flex 布局，否则文字隐藏失效 */
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 .order-goods__content-advertise{
   font-size: 0.75em;
+  /* 此处不能使用 flex 布局，否则文字隐藏失效 */
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;

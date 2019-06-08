@@ -25,6 +25,7 @@ export class ShopDetail extends React.Component {
     }
     // 绑定 this
     this.shopItemTags = this.shopItemTags.bind(this);
+    this.initShopInfo = this.initShopInfo.bind(this);
   }
 
   static propTypes = {
