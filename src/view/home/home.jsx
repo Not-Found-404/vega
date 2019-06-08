@@ -298,7 +298,9 @@ export class Home extends React.Component {
     return (
       <div className="home-layout">
 
-        <SearchGoods />
+        <SearchGoods
+          gotoRouteLocation={this.gotoRouteLocation}
+        />
         {/* 走马灯轮播图 */}
         <div className="home-carousel">
           <Carousel
@@ -517,7 +519,7 @@ class SearchGoods extends React.Component {
         <div
           onClick={
             ()=>{
-              alert('Click');
+              this.props.gotoRouteLocation('/route/shopSearch/');
             }
           }
           className="mockSearch-container"

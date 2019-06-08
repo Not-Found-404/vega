@@ -1,0 +1,28 @@
+.search-layout{
+  width: 100%;
+}
+.search-top{
+  background-color: rgba(47, 134, 255, 1);
+}
+.search-top__search-bar{
+  padding-left: 44px;
+  z-index: 1;
+}
+.search-top__search-return{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 44px;
+  width: 44px;
+  margin-bottom: -44px;
+}
+.search-top__search-return__btn{
+  width: 44px;
+  height: 44px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  z-index: 2;
+}

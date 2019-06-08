@@ -98,7 +98,7 @@ export class ShopDetail extends React.Component {
                     mode="light"
                     icon={<Icon type="left" />}
                     // 点击左侧返回按钮返回首页
-                    onLeftClick={() => { history.push('/tab/home/'); }}
+                    onLeftClick={() => { history.goBack(); }}
                     // 右侧更多按钮
                     rightContent={[
                       <Icon key="1" type="ellipsis" />,
