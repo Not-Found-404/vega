@@ -209,9 +209,11 @@ class TabLayout extends React.Component {
             history.push('/tab/cart');
 
             // 存储状态
-            this.setState({
-              selectedTab: 'cartTab',
-            });
+            this.setState(
+              {
+                selectedTab: 'cartTab',
+              }
+            );
           }}
         >
           <Route path="/tab/cart" component={Cart} />
