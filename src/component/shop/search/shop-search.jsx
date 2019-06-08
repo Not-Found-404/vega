@@ -57,6 +57,11 @@ export class ShopSearch extends React.Component {
               </div>
             }
           </Sticky>
+          <div className="search-content">
+            <div>
+              {/** 搜索页面展示区域 */}
+            </div>
+          </div>
         </StickyContainer>
       </div>
     );
