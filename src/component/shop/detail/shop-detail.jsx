@@ -1,9 +1,10 @@
 import { faEnvelope, faPhone, faPlusCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Icon, ListView, Modal, NavBar, Tabs, Toast } from 'antd-mobile';
+import { Icon, ListView, Modal, NavBar, Tabs, Toast, InputItem  } from 'antd-mobile';
 import classnames from 'classnames'; // className 操作库
 import PropTypes from "prop-types";
 import React from 'react';
+import { createForm } from 'rc-form';
 import { withRouter } from "react-router-dom";
 import { Sticky, StickyContainer } from 'react-sticky';
 import { CartWebService } from '../../../service/cart/cart.web.service';
@@ -798,6 +799,10 @@ class ChooseGoodsStandard extends React.Component {
         afterClose={() => { console.log('After Close'); }}
       >
         <div className="selectStandard-layout">
+          {/** 选择商品数量组件 */}
+          <div className="selectStandard-quantity">
+
+          </div>
           <ListView
             // 映射 ListView
             ref={el => this.shopGoodsAttributeLV = el}
@@ -828,6 +833,9 @@ class ChooseGoodsStandard extends React.Component {
     );
   }
 }
+
+/** 将 ChooseGoodsStandard 转换为 受控组件 */
+
 
 /**
  * 店铺类别列表容器

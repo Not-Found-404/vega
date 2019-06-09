@@ -237,6 +237,9 @@
 .selectStandard-layout{
   width: 100%;
 }
+.selectStandard-quantity{
+  width: 100%;
+}
 .selectStandard-item{
   height: auto;
   width: 100%;
