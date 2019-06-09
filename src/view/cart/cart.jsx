@@ -3,8 +3,9 @@ import './cart.css';
 import classnames from 'classnames'; // className 操作库
 import PropTypes from "prop-types";
 import { withRouter } from "react-router-dom";
+import { createForm } from 'rc-form';
 import { Sticky, StickyContainer } from 'react-sticky';
-import { Icon, ListView, Modal, NavBar, Checkbox, Toast } from 'antd-mobile';
+import { Icon, Modal, NavBar, Toast, List, InputItem } from 'antd-mobile';
 import { CartWebService } from '../../service/cart/cart.web.service';
 
 export class Cart extends React.Component {
@@ -15,10 +16,15 @@ export class Cart extends React.Component {
     // 初始化状态数据
     this.state = {
       cartData: [], // 购物车数据
+      showChooseAttrModal: false, // 显示选择商品属性对话框
+      selectGoodsShoppingCartId: null, // 当前选中的商品订单行编号
+      selectGoodsQuantity: 0, // 当前选中商品的购买数量
     };
     // 绑定 this
     this.initCartData = this.initCartData.bind(this);
     this.renderCartFlow = this.renderCartFlow.bind(this);
+    this.closeChooseGoodsAttrModal = this.closeChooseGoodsAttrModal.bind(this);
+    this.showChooseGoodsAttrModal = this.showChooseGoodsAttrModal.bind(this);
   }
 
   // 组件装载
@@ -40,6 +46,7 @@ export class Cart extends React.Component {
             cartData: res,
           }
         );
+        this.renderCartFlow();
       } else {
         return;
       }
@@ -58,6 +65,31 @@ export class Cart extends React.Component {
   }
 
   /**
+   * 关闭选择商品属性对话框
+   */
+  closeChooseGoodsAttrModal() {
+    this.setState(
+      {
+        showChooseAttrModal: false,
+      }
+    );
+  }
+
+  /**
+   * 显示选择商品属性对话框
+   * @param {string} shoppingCartId - 当前选中的商品编号
+   */
+  showChooseGoodsAttrModal(shoppingCartId, cartGoodsQuantity) {
+    this.setState(
+      {
+        selectGoodsShoppingCartId: shoppingCartId,
+        selectGoodsQuantity: cartGoodsQuantity,
+        showChooseAttrModal: true,
+      }
+    );
+  }
+
+  /**
    * 渲染购物车界面
    */
   renderCartFlow() {
@@ -71,13 +103,18 @@ export class Cart extends React.Component {
               cartShopData={elem}
               cartWebService={this.cartWebService}
               initCartData={this.initCartData}
+              showChooseGoodsAttrModal={this.showChooseGoodsAttrModal}
             />
           );
         }
       );
-      return cartShopList;
+      this.setState({
+        cartShopListView: cartShopList,
+      });
     } else {
-      return null;
+      this.setState({
+        cartShopListView: null,
+      });
     }
   }
 
@@ -114,10 +151,18 @@ export class Cart extends React.Component {
             {/** 购物车内容流 */}
             <div className="cart-flow">
               {/** 购物车条目 */}
-              {this.renderCartFlow()}
+              {this.state.cartShopListView}
             </div>
           </div>
         </StickyContainer>
+        <GoodsAttributesChoose
+          showChooseAttrModal={this.state.showChooseAttrModal}
+          closeChooseGoodsAttrModal={this.closeChooseGoodsAttrModal}
+          selectGoodsShoppingCartId={this.state.selectGoodsShoppingCartId}
+          selectGoodsQuantity={this.state.selectGoodsQuantity}
+          cartWebService={this.cartWebService}
+          initCartData={this.initCartData}
+        />
       </div>
     );
   }
@@ -212,6 +257,7 @@ class CartShopItem extends React.Component {
                   cartGoodsData={elem}
                   cartWebService={this.props.cartWebService}
                   initCartData={this.props.initCartData}
+                  showChooseGoodsAttrModal={this.props.showChooseGoodsAttrModal}
                 />
               )
             )
@@ -316,7 +362,10 @@ class CartGoodsItem extends React.Component {
             </div>
           </div>
           {/** 商品内容区域 */}
-          <div className="cart-item__goods-main">
+          <div
+            className="cart-item__goods-main"
+            onClick={(event) => { event.stopPropagation(); this.props.showChooseGoodsAttrModal(this.props.cartGoodsData.shoppingCartId, this.props.cartGoodsData.quantity); }}
+          >
             {/** 商品图片预览图 */}
             <div className="cart-item__goods-thumb">
               <img alt="Goods" className="cart-item__goods-thumb__img"
@@ -354,6 +403,159 @@ class CartGoodsItem extends React.Component {
     } else {
       return null;
     }
-
   }
 }
+
+/**
+ * 选择商品数量对话框
+ */
+class GoodsAttributesChoose extends React.Component {
+  constructor(props) {
+    super(props);
+    // 初始化参数
+    this.state = {
+      moneyKeyboardWrapProps: {}, // 输入框自定义虚拟键盘属性,用于解决软键盘滚动问题
+    }
+
+    // 绑定 this
+    this.closest = this.closest.bind(this);
+    this.onWrapTouchStart = this.onWrapTouchStart.bind(this);
+    this.fixVirtualKeyboardScroll = this.fixVirtualKeyboardScroll.bind(this);
+    this.submitUpdateAttr = this.submitUpdateAttr.bind(this);
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    // 判断组件是否更新
+    if ((this.props.showChooseAttrModal !== prevProps.showChooseAttrModal) && this.props.selectGoodsShoppingCartId) {
+      this.props.form.setFieldsValue({ 'goodsNumber': this.props.selectGoodsQuantity });
+    }
+  }
+
+  /**
+   * 修复 Android, iOS 点击穿透
+   */
+  closest(el, selector) {
+    const matchesSelector = el.matches || el.webkitMatchesSelector || el.mozMatchesSelector || el.msMatchesSelector;
+    while (el) {
+      if (matchesSelector.call(el, selector)) {
+        return el;
+      }
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  /**
+   * 修复 Android, iOS 点击穿透
+   */
+  onWrapTouchStart = (e) => {
+    // fix touch to scroll background page on iOS
+    if (!/iPhone|iPod|iPad/i.test(navigator.userAgent)) {
+      return;
+    }
+    const pNode = this.closest(e.target, '.am-modal-content');
+    if (!pNode) {
+      e.preventDefault();
+    }
+  }
+
+  /**
+   * 修复虚拟键盘滚动穿透问题
+   */
+  fixVirtualKeyboardScroll() {
+    // 通过自定义 moneyKeyboardWrapProps 修复虚拟键盘滚动穿透问题
+    // https://github.com/ant-design/ant-design-mobile/issues/307
+    // https://github.com/ant-design/ant-design-mobile/issues/163
+    const isIPhone = new RegExp('\\biPhone\\b|\\biPod\\b', 'i').test(window.navigator.userAgent);
+    if (isIPhone) {
+      this.setState(
+        {
+          moneyKeyboardWrapProps: {
+            onTouchStart: event => event.preventDefault(),
+          },
+        }
+      );
+    }
+  }
+
+  /**
+   * 提交修改数量的商品
+   */
+  submitUpdateAttr() {
+    this.props.form.validateFields((error, value) => {
+      if (!error) {
+        this.props.closeChooseGoodsAttrModal();
+        this.props.cartWebService.updateCartGoodsQuantity(
+          {
+            // 传输参数
+            params: {
+              quantity: value.goodsNumber,
+              shoppingCartId: this.props.selectGoodsShoppingCartId,
+            },
+            // 成功回调函数
+            success: (res) => {
+              Toast.success('修改成功', 1);
+              this.props.initCartData();
+            },
+          }
+        );
+      } else {
+        // 验证失败
+        Toast.info('请输入有效的商品数量', 1);
+      }
+    });
+  }
+
+  render() {
+    /**
+     * 商品数量选择参数
+     */
+    const { getFieldProps } = this.props.form;
+
+    return (
+      <Modal
+        visible={this.props.showChooseAttrModal}
+        popup
+        maskClosable
+        animationType="slide-up"
+        onClose={() => { this.props.closeChooseGoodsAttrModal() }}
+        title="选择商品规格"
+        // 弹出框确认
+        footer={
+          [{
+            text: '确定',
+            onPress: () => {
+              this.submitUpdateAttr();
+            }
+          }]
+        }
+        wrapProps={{ onTouchStart: this.onWrapTouchStart }}
+        afterClose={() => { }}
+      >
+        <div className="attributeModal-layout">
+          <List>
+            <InputItem
+              // 可控组件，进行数据绑定
+              {...getFieldProps('goodsNumber', {
+                // 初始化值
+                initialValue: 1,
+                // 校验规则
+                rules: [{ required: true, message: '请输入商品数量' }],
+              })}
+              type={'number'}
+              defaultValue={1}
+              placeholder="购买商品数量"
+              clear
+              moneyKeyboardWrapProps={this.state.moneyKeyboardWrapProps}
+            >
+              数量
+            </InputItem>
+          </List>
+        </div>
+      </Modal>
+    );
+  }
+}
+
+/** 将 GoodsAttributesChoose 转换为 受控组件 */
+GoodsAttributesChoose = createForm()(GoodsAttributesChoose);

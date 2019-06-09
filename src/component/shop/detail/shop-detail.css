@@ -239,6 +239,8 @@
 }
 .selectStandard-quantity{
   width: 100%;
+  /* margin-left:  */
+  margin-bottom: 0.5em;
 }
 .selectStandard-item{
   height: auto;
@@ -271,4 +273,17 @@
   color: #108ee9;
   border-color: #108ee9;
   background-color: #d3edff;
+}
+.shop-access__cart{
+  right: 2em;
+  bottom: 2em;
+  position: fixed;
+  width: 3em;
+  height: 3em;
+  background-color: #108ee9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
 }

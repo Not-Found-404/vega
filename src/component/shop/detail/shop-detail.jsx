@@ -1,6 +1,6 @@
-import { faEnvelope, faPhone, faPlusCircle } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faPhone, faPlusCircle, faShoppingCart } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Icon, ListView, Modal, NavBar, Tabs, Toast, InputItem  } from 'antd-mobile';
+import { Icon, ListView, Modal, NavBar, Tabs, Toast, InputItem, List } from 'antd-mobile';
 import classnames from 'classnames'; // className 操作库
 import PropTypes from "prop-types";
 import React from 'react';
@@ -38,7 +38,6 @@ export class ShopDetail extends React.Component {
   componentDidMount() {
     // 初始化获取店铺信息
     this.initShopInfo();
-
   }
 
   /**
@@ -82,6 +81,15 @@ export class ShopDetail extends React.Component {
       return <span>无标签</span>
     }
   };
+
+  /**
+   * 路由跳转函数
+   * @param {string} location - 路由地址
+   */
+  gotoRouteLocation(location){
+    let history = this.props.history;
+    history.push(location);
+  }
 
   render() {
     // 路由导航对象
@@ -179,6 +187,17 @@ export class ShopDetail extends React.Component {
               </div>
             </div>
           </StickyContainer>
+
+          {/** 跳转购物车按钮 */}
+          <div
+            className="shop-access__cart"
+            onClick = { (event) => {
+              event.stopPropagation();
+              this.gotoRouteLocation('/tab/cart');
+            }}
+          >
+            <FontAwesomeIcon icon={faShoppingCart} size="lg" />
+          </div>
         </div>
       );
       // 不存在 shopId，不加载数据
@@ -245,6 +264,7 @@ class Order extends React.Component {
       shopGoodsAttribute: null,
       shopSelectedGoodsId: null,
       showChooseStandardModal: false,
+      shopSelectedGoodsStockQuantity: 0,
     }
 
     // 绑定 this
@@ -290,7 +310,7 @@ class Order extends React.Component {
         {
           shopCategorySelectId: this.state.shopCategoryListData[0].shopCategoryId,
           shopCategoryListViewData: this.state.shopCategoryListViewData.cloneWithRowsAndSections(dataBlobs, categorySectionIDs, categoryRowIDs), // ReactNative 克隆视图数据
-          shopGoodsAttribute: Object.keys(this.state.shopCategoryListData[0].itemThinResponseList[0].attribute).length > 0 ? this.state.shopCategoryListData[0].itemThinResponseList[0].attribute : [],  // 获取第一个类目的第一个商品的属性信息
+          shopGoodsAttribute: [],  // 获取第一个类目的第一个商品的属性信息
         }
       );
     } else {
@@ -362,7 +382,7 @@ class Order extends React.Component {
    * @param {any} goodsAttributes - 商品属性信息
    * @author BillowsTao
    */
-  addGoodsToCart(goodsId, goodsAttributes, quantity){
+  addGoodsToCart(goodsId, goodsAttributes, quantity) {
     console.log('函数参数:', [].concat(...arguments));
     // 调用服务更新购物车数据
     this.cartWebService.createCartGoods(
@@ -375,7 +395,7 @@ class Order extends React.Component {
         },
         // 成功回调函数
         success: (res) => {
-          Toast.success('添加到购物车');
+          Toast.success('添加到购物车', 1);
           this.closeChooseGoodsStandard();
         },
       }
@@ -388,7 +408,10 @@ class Order extends React.Component {
   chooseGoodsStandard(selectGoodsId) {
     let _shopGoodsAttribute =
       this.state.shopCategoryListData.filter((elem) => (elem.shopCategoryId === this.state.shopCategorySelectId))[0]
-      .itemThinResponseList.filter((elem) => (elem.itemId === selectGoodsId))[0].attribute;
+        .itemThinResponseList.filter((elem) => (elem.itemId === selectGoodsId))[0].attribute;
+    let _shopGoodsStockQuantity =
+      this.state.shopCategoryListData.filter((elem) => (elem.shopCategoryId === this.state.shopCategorySelectId))[0]
+        .itemThinResponseList.filter((elem) => (elem.itemId === selectGoodsId))[0].inventory;
     // 当前商品存在商品属性信息选择
     if (_shopGoodsAttribute && Object.keys(_shopGoodsAttribute).length > 0) {
       let _shopGoodsAttribute =
@@ -399,11 +422,17 @@ class Order extends React.Component {
       this.setState({
         shopSelectedGoodsId: selectGoodsId,
         shopGoodsAttribute: _shopGoodsAttribute,  //` 获取第一个类目的第一个商品的属性信息
+        shopSelectedGoodsStockQuantity: typeof _shopGoodsStockQuantity === 'number' ? _shopGoodsStockQuantity : 0, // 设置当前选中商品的库存数量
         showChooseStandardModal: true,
       });
     } else {
       // 当前商品不存在商品属性信息
-      this.addGoodsToCart(selectGoodsId, null, 1);
+      this.setState({
+        shopSelectedGoodsId: selectGoodsId,
+        shopGoodsAttribute: {},  //` 获取第一个类目的第一个商品的属性信息
+        shopSelectedGoodsStockQuantity: typeof _shopGoodsStockQuantity === 'number' ? _shopGoodsStockQuantity : 0, // 设置当前选中商品的库存数量
+        showChooseStandardModal: true,
+      });
     }
   }
 
@@ -549,6 +578,7 @@ class Order extends React.Component {
           showChooseStandardModal={this.state.showChooseStandardModal}
           closeModal={this.closeChooseGoodsStandard}
           addGoodsToCart={this.addGoodsToCart}
+          shopGoodsStockAmount={this.state.shopSelectedGoodsStockQuantity}
         />
       </div>
     );
@@ -602,6 +632,7 @@ class ChooseGoodsStandard extends React.Component {
     this.state = {
       shopGoodsAttributeListViewData, // 商品属性视图数据
       checkOptionMap: {}, // 商品属性选项映射
+      moneyKeyboardWrapProps: {}, // 输入框自定义虚拟键盘属性,用于解决软键盘滚动问题
     };
 
     this.initShopGoodsAttribute = this.initShopGoodsAttribute.bind(this);
@@ -609,16 +640,19 @@ class ChooseGoodsStandard extends React.Component {
     this.onWrapTouchStart = this.onWrapTouchStart.bind(this);
     this.changeAttributeSelectOption = this.changeAttributeSelectOption.bind(this);
     this.addToCart = this.addToCart.bind(this);
+    this.fixVirtualKeyboardScroll = this.fixVirtualKeyboardScroll.bind(this);
   }
 
   componentDidMount() {
     console.log('props:', this.props);
     this.initShopGoodsAttribute();
+    // 检测设备类型，解决软键盘兼容问题
+    this.fixVirtualKeyboardScroll();
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
     // 判断组件是否更新
-    if ((this.props.showChooseStandardModal !== prevProps.showChooseStandardModal) && this.props.shopSelectedGoodsId ) {
+    if ((this.props.showChooseStandardModal !== prevProps.showChooseStandardModal) && this.props.shopSelectedGoodsId) {
       console.log('props:', this.props);
       this.initShopGoodsAttribute();
     }
@@ -673,7 +707,7 @@ class ChooseGoodsStandard extends React.Component {
     let attribute = this.props.shopGoodsAttribute;
     console.log('初始化商品规格数据:\nAttribute:', attribute, '\nshopSelectedGoodsId:', this.props.shopSelectedGoodsId);
     if (attribute) {
-      categorySectionIDs.push(`${this.props.shopSelectedGoodsId.toString()}-${Math.random().toString().substr(2,4)}`);
+      categorySectionIDs.push(`${this.props.shopSelectedGoodsId.toString()}-${Math.random().toString().substr(2, 4)}`);
       categoryRowIDs.push([]);
       dataBlobs[this.props.shopSelectedGoodsId] = this.props.shopSelectedGoodsId;
       Object.keys(attribute).forEach(
@@ -690,6 +724,8 @@ class ChooseGoodsStandard extends React.Component {
           checkOptionMap: checkOptionMap,
         }
       );
+      // 默认初始化商品数量为1
+      this.props.form.setFieldsValue({'goodsNumber': 1});
     } else {
       return;
     }
@@ -711,24 +747,58 @@ class ChooseGoodsStandard extends React.Component {
   /**
    * 提交商品到购物车
    */
-  addToCart(){
-    // 关闭模态框
-    this.props.closeModal();
-    // 提交商品到购物车
-    this.cartWebService.createCartGoods(
-      {
-        // 传输参数
-        params: {
-          itemAttribute: this.state.checkOptionMap ? this.state.checkOptionMap : null, // 商品属性
-          itemId: this.props.shopSelectedGoodsId, //
-          quantity: 1,
-        },
-        // 成功回调函数
-        success: (res) => {
-          Toast.success('添加到购物车');
-        },
+  addToCart() {
+    this.props.form.validateFields((error, value) => {
+      console.log(error, value);
+      // 关闭模态框
+      if (!error) {
+        // 当前购买数量合理，可以进行购买
+        if (value.goodsNumber <= this.props.shopGoodsStockAmount) {
+          // 验证成功
+          this.props.closeModal();
+          // 提交商品到购物车
+          this.cartWebService.createCartGoods(
+            {
+              // 传输参数
+              params: {
+                itemAttribute: this.state.checkOptionMap ? this.state.checkOptionMap : null, // 商品属性
+                itemId: this.props.shopSelectedGoodsId, //
+                quantity: value.goodsNumber,
+              },
+              // 成功回调函数
+              success: (res) => {
+                Toast.success('添加到购物车', 1);
+              },
+            }
+          );
+        } else {
+          // 验证失败
+          Toast.info(`库存不足${value.goodsNumber}`, 1);
+        }
+      } else {
+        // 验证失败
+        Toast.info('请输入有效的商品数量', 1);
       }
-    );
+    });
+  }
+
+  /**
+   * 修复虚拟键盘滚动穿透问题
+   */
+  fixVirtualKeyboardScroll() {
+    // 通过自定义 moneyKeyboardWrapProps 修复虚拟键盘滚动穿透问题
+    // https://github.com/ant-design/ant-design-mobile/issues/307
+    // https://github.com/ant-design/ant-design-mobile/issues/163
+    const isIPhone = new RegExp('\\biPhone\\b|\\biPod\\b', 'i').test(window.navigator.userAgent);
+    if (isIPhone) {
+      this.setState(
+        {
+          moneyKeyboardWrapProps: {
+            onTouchStart: event => event.preventDefault(),
+          },
+        }
+      );
+    }
   }
 
   render() {
@@ -779,6 +849,11 @@ class ChooseGoodsStandard extends React.Component {
       );
     };
 
+    /**
+     * 商品数量选择参数
+     */
+    const { getFieldProps } = this.props.form;
+
     return (
       <Modal
         visible={this.props.showChooseStandardModal}
@@ -796,12 +871,29 @@ class ChooseGoodsStandard extends React.Component {
           }]
         }
         wrapProps={{ onTouchStart: this.onWrapTouchStart }}
-        afterClose={() => { console.log('After Close'); }}
+        afterClose={() => { }}
       >
         <div className="selectStandard-layout">
           {/** 选择商品数量组件 */}
           <div className="selectStandard-quantity">
-
+            <List>
+              <InputItem
+                // 可控组件，进行数据绑定
+                {...getFieldProps('goodsNumber', {
+                  // 初始化值
+                  initialValue: 1,
+                  // 校验规则
+                  rules: [{ required: true, message: '请输入商品数量' }],
+                })}
+                type={'number'}
+                defaultValue={1}
+                placeholder="购买商品数量"
+                clear
+                moneyKeyboardWrapProps={this.state.moneyKeyboardWrapProps}
+              >
+                数量
+              </InputItem>
+            </List>
           </div>
           <ListView
             // 映射 ListView
@@ -820,6 +912,7 @@ class ChooseGoodsStandard extends React.Component {
               width: '100%',
               overflowY: 'auto',
               overflowX: 'hidden',
+              display: (this.props.shopGoodsAttribute) && (Object.keys(this.props.shopGoodsAttribute).length > 0) ? 'block' : 'none',  // 根据是否有属性显示属性选择区域
             }}
             // 每次事件循环（每帧）渲染的行数
             pageSize={5}
@@ -835,7 +928,7 @@ class ChooseGoodsStandard extends React.Component {
 }
 
 /** 将 ChooseGoodsStandard 转换为 受控组件 */
-
+ChooseGoodsStandard = createForm()(ChooseGoodsStandard);
 
 /**
  * 店铺类别列表容器

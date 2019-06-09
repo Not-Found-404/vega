@@ -48,4 +48,17 @@ export class CartWebService extends AbstractService {
       }
     );
   }
+
+  /**
+   * 修改购物车行商品数量
+   */
+  updateCartGoodsQuantity = (request) => {
+    this.post(
+      {
+        url: '/api/web/shopping/cart/update',
+        request: request,
+      }
+    );
+  }
+
 }
