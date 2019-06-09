@@ -10,7 +10,6 @@ import { Sticky, StickyContainer } from 'react-sticky';
 import { CartWebService } from '../../../service/cart/cart.web.service';
 import { ShopWebService } from '../../../service/shop/shop.web.service';
 import './shop-detail.css';
-import { nonsense } from 'antd-mobile/lib/picker';
 
 export class ShopDetail extends React.Component {
   // 服务
