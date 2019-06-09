@@ -208,7 +208,7 @@ export class Home extends React.Component {
           }
         );
       }
-    }
+    };
 
     /**
      * 请求店铺列表信息数据

@@ -43,9 +43,8 @@ class Main extends React.Component {
     this.userWebService.login(
       {
         params: {
-          mobile: "17864293685",
+          mobile: "17845647879",
           password: "1",
-          type: 2
         },
         success: (data) => { }
       }

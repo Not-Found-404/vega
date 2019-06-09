@@ -1,0 +1,13 @@
+.am-card-header-extra{
+  width: 20%;
+}
+.am-card-header-content img{
+  margin-right:0;
+}
+.am-card-header-content{
+  width: 70%;
+}
+.order-op-button{
+  color: #4f9ff6;
+  border: 2px;
+}
