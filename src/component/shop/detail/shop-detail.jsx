@@ -1,4 +1,4 @@
-import { faEnvelope, faPhone, faPlusCircle } from '@fortawesome/free-solid-svg-icons';
+import { faEnvelope, faPhone, faPlusCircle, faShoppingCart } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Icon, ListView, Modal, NavBar, Tabs, Toast, InputItem, List } from 'antd-mobile';
 import classnames from 'classnames'; // className 操作库
@@ -38,7 +38,6 @@ export class ShopDetail extends React.Component {
   componentDidMount() {
     // 初始化获取店铺信息
     this.initShopInfo();
-
   }
 
   /**
@@ -82,6 +81,15 @@ export class ShopDetail extends React.Component {
       return <span>无标签</span>
     }
   };
+
+  /**
+   * 路由跳转函数
+   * @param {string} location - 路由地址
+   */
+  gotoRouteLocation(location){
+    let history = this.props.history;
+    history.push(location);
+  }
 
   render() {
     // 路由导航对象
@@ -179,6 +187,17 @@ export class ShopDetail extends React.Component {
               </div>
             </div>
           </StickyContainer>
+
+          {/** 跳转购物车按钮 */}
+          <div
+            className="shop-access__cart"
+            onClick = { (event) => {
+              event.stopPropagation();
+              this.gotoRouteLocation('/tab/cart');
+            }}
+          >
+            <FontAwesomeIcon icon={faShoppingCart} size="lg" />
+          </div>
         </div>
       );
       // 不存在 shopId，不加载数据
