@@ -24,4 +24,16 @@ export class CartWebService extends AbstractService {
       }
     );
   }
+
+  /**
+   * 按店铺编号清空购物车
+   */
+  clearCartByShopId = (request) => {
+    this.post(
+      {
+        url: '/api/web/shopping/cart/shop/remove/all',
+        request: request,
+      }
+    );
+  }
 }
