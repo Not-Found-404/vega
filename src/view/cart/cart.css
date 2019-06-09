@@ -139,6 +139,12 @@
 .cart-item__goods-content__middle{
   width: 100%;
 }
+.cart-item__goods-content__attribute-item{
+  font-size: 0.82em;
+}
+.cart-item__goods-content__middle .cart-item__goods-content__attribute-item:not(:nth-child(1)){
+  margin-left: 0.3em;
+}
 .cart-item__goods-content__bottom{
   display: flex;
   justify-content: space-between;

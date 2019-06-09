@@ -67,7 +67,7 @@ export class Cart extends React.Component {
         (elem, index) => {
           cartShopList.push(
             <CartShopItem
-              key={`${elem.shopThinResponse.shopId}-${Math.random().toString().substr(2,5)}`}
+              key={`${elem.shopThinResponse.shopId}-${Math.random().toString().substr(2, 5)}`}
               cartShopData={elem}
               cartWebService={this.cartWebService}
               initCartData={this.initCartData}
@@ -130,7 +130,7 @@ Cart = withRouter(Cart);
  */
 class CartShopItem extends React.Component {
 
-  constructor(props){
+  constructor(props) {
     super(props);
     // 绑定 this
     this.settlementAmount = this.settlementAmount.bind(this);
@@ -140,9 +140,9 @@ class CartShopItem extends React.Component {
   /**
    * 计算商品价格
    */
-  settlementAmount(){
+  settlementAmount() {
     let totalPrice = 0;
-    if(this.props.cartShopData.shoppingCartLine && this.props.cartShopData.shoppingCartLine.length > 0){
+    if (this.props.cartShopData.shoppingCartLine && this.props.cartShopData.shoppingCartLine.length > 0) {
       this.props.cartShopData.shoppingCartLine.forEach(
         (elem) => {
           totalPrice += parseInt(elem.quantity) * parseFloat(elem.price).toFixed(2);
@@ -187,9 +187,9 @@ class CartShopItem extends React.Component {
         <div className="cart-item__shop">
           <div
             className="cart-item__shop-info"
-            onClick={(event)=>{
+            onClick={(event) => {
               this.gotoRouteLocation(`/route/shopDetail?shopId=${this.props.cartShopData.shopThinResponse.shopId}`);
-             }}
+            }}
           >
             {/** 店铺名 */}
             <span className="cart-item__shop-info__name">
@@ -208,7 +208,7 @@ class CartShopItem extends React.Component {
               (elem) => (
                 /** 每个商品项 */
                 <CartGoodsItem
-                  key={`${elem.shoppingCartId}-${Math.random().toString().substr(2,5)}`}
+                  key={`${elem.shoppingCartId}-${Math.random().toString().substr(2, 5)}`}
                   cartGoodsData={elem}
                   cartWebService={this.props.cartWebService}
                   initCartData={this.props.initCartData}
@@ -223,10 +223,10 @@ class CartShopItem extends React.Component {
           <div className="cart-item__action-clear">
             <div
               className="cart-item__action-clear__btn"
-              onClick={(event)=>{
+              onClick={(event) => {
                 event.stopPropagation();
                 this.emptyCartShop(this.props.cartShopData.shopThinResponse.shopId);
-                }
+              }
               }
             >
               清空商品
@@ -267,7 +267,7 @@ class CartGoodsItem extends React.Component {
   /**
    * 删除商品条目
    */
-  deleteGoodsItem(deleteGoodsItemId){
+  deleteGoodsItem(deleteGoodsItemId) {
     // 调用删除商品服务
     this.props.cartWebService.updateCart(
       {
@@ -286,58 +286,75 @@ class CartGoodsItem extends React.Component {
   }
 
   render() {
-    return (
-      <div className="cart-item__goods-item">
-        {/** 编辑区域 */}
-        <div className="cart-item__edit">
-          {/** 删除按钮 */}
-          <div
-            className="cart-item__edit-item"
-            onClick={(event) => {
-              event.stopPropagation();
-              this.deleteGoodsItem(this.props.cartGoodsData.itemId);
-            }}
-          >
-            <div className="cart-item__edit-item__delete-icon">
-              <Icon type={'cross-circle'} size="xs" />
+
+    // 渲染商品属性信息
+    const renderGoodsAttributes = (attributesObject) => {
+      if (attributesObject && Object.keys(attributesObject).length > 0) {
+        return Object.keys(attributesObject).map(
+          (elem) => (<span className="cart-item__goods-content__attribute-item">{attributesObject[elem]}</span>)
+        );
+      } else {
+        return null;
+      }
+    }
+    // 判断当前数据是否为空，为空则不进行渲染
+    if (this.props.cartGoodsData) {
+      return (
+        <div className="cart-item__goods-item">
+          {/** 编辑区域 */}
+          <div className="cart-item__edit">
+            {/** 删除按钮 */}
+            <div
+              className="cart-item__edit-item"
+              onClick={(event) => {
+                event.stopPropagation();
+                this.deleteGoodsItem(this.props.cartGoodsData.itemId);
+              }}
+            >
+              <div className="cart-item__edit-item__delete-icon">
+                <Icon type={'cross-circle'} size="xs" />
+              </div>
+            </div>
+          </div>
+          {/** 商品内容区域 */}
+          <div className="cart-item__goods-main">
+            {/** 商品图片预览图 */}
+            <div className="cart-item__goods-thumb">
+              <img alt="Goods" className="cart-item__goods-thumb__img"
+                src={this.props.cartGoodsData.itemImage ? this.props.cartGoodsData.itemImage : null}
+              />
+            </div>
+            {/** 商品信息 */}
+            <div className="cart-item__goods-content">
+              <div className="cart-item__goods-content__top">
+                <span className="cart-item__goods-content__name">
+                  {this.props.cartGoodsData.itemName}
+                </span>
+              </div>
+
+              <div className="cart-item__goods-content__middle">
+                {renderGoodsAttributes(this.props.cartGoodsData.itemAttribute)}
+              </div>
+
+              <div className="cart-item__goods-content__bottom">
+                <span className="cart-item__goods-content__quantity">
+                  x<span className="cart-item__goods-content__quantity-text">
+                    {this.props.cartGoodsData.quantity}
+                  </span>
+                </span>
+                <span className="cart-item__goods-content__price">
+                  ￥<span className="cart-item__goods-content__price-text">
+                    {this.props.cartGoodsData.price ? this.props.cartGoodsData.price.toFixed(2) : 0.00}
+                  </span>
+                </span>
+              </div>
             </div>
           </div>
         </div>
-        {/** 商品内容区域 */}
-        <div className="cart-item__goods-main">
-          {/** 商品图片预览图 */}
-          <div className="cart-item__goods-thumb">
-            <img alt="Goods" className="cart-item__goods-thumb__img"
-              src={this.props.cartGoodsData.itemImage ?this.props.cartGoodsData.itemImage : null}
-            />
-          </div>
-          {/** 商品信息 */}
-          <div className="cart-item__goods-content">
-            <div className="cart-item__goods-content__top">
-              <span className="cart-item__goods-content__name">
-                {this.props.cartGoodsData.itemName}
-              </span>
-            </div>
+      );
+    } else {
+      return null;
+    }
 
-            <div className="cart-item__goods-content__middle">
-
-            </div>
-
-            <div className="cart-item__goods-content__bottom">
-              <span className="cart-item__goods-content__quantity">
-                x<span className="cart-item__goods-content__quantity-text">
-                  {this.props.cartGoodsData.quantity}
-                </span>
-              </span>
-              <span className="cart-item__goods-content__price">
-                ￥<span className="cart-item__goods-content__price-text">
-                  {this.props.cartGoodsData.price ? this.props.cartGoodsData.price.toFixed(2) : 0.00}
-                </span>
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   }
 }
