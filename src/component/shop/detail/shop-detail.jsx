@@ -364,7 +364,7 @@ class Order extends React.Component {
   addGoodsToCart(goodsId, goodsAttributes, quantity){
     console.log('函数参数:', [].concat(...arguments));
     // 调用服务更新购物车数据
-    this.cartWebService.updateCart(
+    this.cartWebService.createCartGoods(
       {
         // 传输参数
         params: {
@@ -714,7 +714,7 @@ class ChooseGoodsStandard extends React.Component {
     // 关闭模态框
     this.props.closeModal();
     // 提交商品到购物车
-    this.cartWebService.updateCart(
+    this.cartWebService.createCartGoods(
       {
         // 传输参数
         params: {

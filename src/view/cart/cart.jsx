@@ -267,14 +267,13 @@ class CartGoodsItem extends React.Component {
   /**
    * 删除商品条目
    */
-  deleteGoodsItem(deleteGoodsItemId) {
+  deleteGoodsItem(shoppingCartId) {
     // 调用删除商品服务
-    this.props.cartWebService.updateCart(
+    this.props.cartWebService.deleteCartGoodsByCartId(
       {
         // 传输参数
         params: {
-          itemId: deleteGoodsItemId, // 删除商品的编号
-          quantity: -1,
+          shoppingCartId: shoppingCartId,
         },
         // 成功回调函数
         success: (res) => {
@@ -291,7 +290,7 @@ class CartGoodsItem extends React.Component {
     const renderGoodsAttributes = (attributesObject) => {
       if (attributesObject && Object.keys(attributesObject).length > 0) {
         return Object.keys(attributesObject).map(
-          (elem) => (<span className="cart-item__goods-content__attribute-item">{attributesObject[elem]}</span>)
+          (elem) => (<span key={Math.random().toString().substr(2, 5)} className="cart-item__goods-content__attribute-item">{attributesObject[elem]}</span>)
         );
       } else {
         return null;
@@ -308,7 +307,7 @@ class CartGoodsItem extends React.Component {
               className="cart-item__edit-item"
               onClick={(event) => {
                 event.stopPropagation();
-                this.deleteGoodsItem(this.props.cartGoodsData.itemId);
+                this.deleteGoodsItem(this.props.cartGoodsData.shoppingCartId);
               }}
             >
               <div className="cart-item__edit-item__delete-icon">
