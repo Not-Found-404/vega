@@ -239,6 +239,8 @@
 }
 .selectStandard-quantity{
   width: 100%;
+  /* margin-left:  */
+  margin-bottom: 0.5em;
 }
 .selectStandard-item{
   height: auto;
