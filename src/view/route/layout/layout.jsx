@@ -1,17 +1,15 @@
 import React from 'react';
 import { Route } from "react-router-dom";
+/** 路由组件 - 声明区域 - start */
 import { ShopDetail } from '../../../component/shop/detail/shop-detail';
 import { ShopSearch } from '../../../component/shop/search/shop-search';
-import './layout.css';
 import {OrderDetail} from "../../../component/order/order.detail";
 import {CommentCreate} from "../../../component/order/comment.create";
+// import { Settlement } from  '../../../component/settlement/settlement';
+/** 路由组件 - 声明区域 - end */
+import './layout.css';
 
 export class LayoutRoute extends React.Component {
-
-  componentDidMount() {
-
-  }
-
   render() {
     return (
       <div
@@ -23,6 +21,8 @@ export class LayoutRoute extends React.Component {
         <Route path="/route/shopSearch/" component={ShopSearch} />
         <Route path="/route/orderDetail/:orderId" component={OrderDetail} />
         <Route path="/route/commentCreate/:orderId" component={CommentCreate} />
+        {/** 购物车结算页面 */}
+        {/* <Route path="/route/settlement" component={ Settlement } /> */}
       </div>
     );
   }
