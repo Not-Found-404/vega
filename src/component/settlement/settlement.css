@@ -1,0 +1,138 @@
+.settlement-layout{
+  width: 100%;
+}
+
+.settlement-main {
+  width: 100%;
+}
+
+.settlement-flow {
+  width: 100%;
+  padding: 0.8em;
+}
+
+.settlement-item {
+  width: 100%;
+  background-color: #ffffff;
+}
+
+.cart-flow>.cart-item:not(:nth-child(1)) {
+  margin-top: 0.8em;
+}
+
+.settlement-item__shop {
+  width: 100%;
+  height: 3.5em;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0.5em;
+  overflow: hidden;
+  border-bottom: 1px solid #ddd;
+}
+
+.settlement-item__shop-info {
+  height: 100%;
+  width: auto;
+  display: flex;
+  flex-direction: row;
+  margin-left: 0.5em;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+.settlement-item__shop-info__name {
+  /* 此处不能使用 flex 布局，否则文字隐藏失效 */
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.settlement-item__goods {
+  width: 100%;
+  overflow: hidden;
+}
+
+.settlement-item__goods-item {
+  height: 8em;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0.5em;
+}
+
+.settlement-item__goods-main {
+  width: 100%;
+  height: 7em;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  overflow: hidden;
+}
+
+.settlement-item__goods-thumb {
+  height: 7em;
+  width: 7em;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.settlement-item__goods-thumb__img {
+  height: 6em;
+  width: 6em;
+}
+
+.settlement-item__goods-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  overflow: hidden;
+}
+
+.settlement-item__goods-content__top {
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+}
+
+.settlement-item__goods-content__name {
+  width: 100%;
+  font-size: 1.2em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settlement-item__goods-content__middle {
+  width: 100%;
+}
+
+.settlement-item__goods-content__attribute-item {
+  font-size: 0.82em;
+}
+
+.settlement-item__goods-content__middle .settlement-item__goods-content__attribute-item:not(:nth-child(1)) {
+  margin-left: 0.3em;
+}
+
+.settlement-item__goods-content__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.settlement-item__goods-content__quantity-text {
+  font-size: 1.2em;
+}
+
+.settlement-item__goods-content__price-text {
+  font-size: 1.2em;
+}
