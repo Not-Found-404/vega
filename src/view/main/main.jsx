@@ -21,13 +21,14 @@ export class MainLayout extends React.Component {
     );
   }
 }
-
 class Main extends React.Component {
   // 组件参数
   userWebService = new UserWebService();
 
   constructor(props) {
     super(props);
+    // 绑定 this
+    this.defaultRoute = this.defaultRoute.bind(this);
   }
 
   static propTypes = {
@@ -36,9 +37,16 @@ class Main extends React.Component {
     history: PropTypes.object.isRequired
   };
 
+  defaultRoute(){
+    const {location, match, history} = this.props;
+    console.log('location:', location, '\nmatch:', match, '\nhistory:', history);
+    // 如果当路径为根路径，那么跳转默认路由
+    if(location.pathname === '/'){
+      document.location.replace('/tab/home/');
+    }
+  }
+
   componentDidMount() {
-    // 默认路由跳转到 Tab 页
-    // this.props.history.push('/tab/home/');
     // 登录用户
     this.userWebService.login(
       {
@@ -49,6 +57,8 @@ class Main extends React.Component {
         success: (data) => { }
       }
     );
+    // 跳转到默认路由
+    this.defaultRoute();
   }
 
   render() {
@@ -89,8 +99,6 @@ class TabLayout extends React.Component {
   componentDidMount() {
     // 装载组件进行 Tab 跳转
     this.changeRoute();
-    // 默认路由跳转
-    // this.props.history.push('/tab/home/');
     this.changeTab();
   }
 
