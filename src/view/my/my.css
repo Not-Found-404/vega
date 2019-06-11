@@ -1,0 +1,93 @@
+.myInfo-layout{
+  width: 100%;
+}
+.myInfo-thumb{
+  height: auto;
+  height: 100%;
+}
+.myInfo-thumb__background{
+  height: 10em;
+  width: 100%;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-clip: content-box;
+  filter: blur(8px);
+  opacity: 0.8;
+}
+.myInfo-brief{
+  width:100%;
+  background-color: #ffffff;
+  padding: 0 0 1em 0;
+}
+.myInfo-thumb__img-container{
+  width: 100%;
+  height: 10em;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: -5em;
+}
+.myInfo-thumb__img{
+  height: 10em;
+  width: 10em;
+  border-radius: 50%;
+  z-index: 0;
+  border: 5px solid #ffffff;
+}
+.myInfo-detail{
+  width: 100%;
+  height: auto;
+  margin-top: 1em;
+}
+.myInfo-name__nickName{
+  width: 100%;
+  font-size: 2.15em;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  margin-bottom: 0.5em;
+}
+.myInfo-item{
+  width: 100%;
+  height: 3em;
+  padding: 0 1em;
+  display: flex;
+  align-items: center;
+  font-size: 1.3em;
+}
+.myInfo-item__prefix{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+}
+.myInfo-item__prefix-icon{
+  width: 2.5em;
+  height: 2.5em;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+.myInfo-item__prefix-title{
+  height: 100%;
+  font-weight: 500;
+}
+.myInfo-item__content{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+}
+.myInfo-logout{
+  width: 100%;
+  height: auto;
+  padding: 0 3em;
+}
+.myInfo-logout__btn{
+  width: auto;
+}
