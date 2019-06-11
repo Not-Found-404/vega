@@ -170,7 +170,8 @@ export class ShopDetail extends React.Component {
               <div className="shop-content">
                 <StickyContainer>
                   <Tabs
-                    tabs={[{ title: '点餐' }, { title: '评价' }]} // tab数据
+                  // { title: '点餐' }, { title: '评价' }
+                    tabs={[{ title: '点餐' }]} // tab数据
                     initalPage={1} // 初始化Tab, index or key
                     renderTabBar={renderTabBar} // 替换TabBar
                     swipeable={false}
@@ -181,7 +182,7 @@ export class ShopDetail extends React.Component {
                       shopCategoryData={this.state.shopInfoData ? this.state.shopInfoData.shopCategoryDetailResponseList : null}
                     />
                     {/* 评价界面 */}
-                    <Remark />
+                    {/* <Remark /> */}
                   </Tabs>
                 </StickyContainer>
               </div>
