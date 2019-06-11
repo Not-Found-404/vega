@@ -7,10 +7,12 @@ import { createForm } from 'rc-form';
 import { Sticky, StickyContainer } from 'react-sticky';
 import { Icon, Modal, NavBar, Toast, List, InputItem } from 'antd-mobile';
 import { CartWebService } from '../../service/cart/cart.web.service';
+import { OrderWebService } from '../../service/order/order.web.service';
 
 export class Cart extends React.Component {
   // 服务
   cartWebService = new CartWebService();
+  orderWebService = new OrderWebService();
   constructor(props) {
     super(props);
     // 初始化状态数据
@@ -19,12 +21,16 @@ export class Cart extends React.Component {
       showChooseAttrModal: false, // 显示选择商品属性对话框
       selectGoodsShoppingCartId: null, // 当前选中的商品订单行编号
       selectGoodsQuantity: 0, // 当前选中商品的购买数量
+      showNotesInputModal: false, // 订单备注信息输入框状态变量
+      createOrderData: {}, // 提交订单数据
     };
     // 绑定 this
     this.initCartData = this.initCartData.bind(this);
     this.renderCartFlow = this.renderCartFlow.bind(this);
     this.closeChooseGoodsAttrModal = this.closeChooseGoodsAttrModal.bind(this);
     this.showChooseGoodsAttrModal = this.showChooseGoodsAttrModal.bind(this);
+    this.closeNotesInputModal = this.closeNotesInputModal.bind(this);
+    this.showOrderNotesInputModal = this.showOrderNotesInputModal.bind(this);
   }
 
   // 组件装载
@@ -104,6 +110,8 @@ export class Cart extends React.Component {
               cartWebService={this.cartWebService}
               initCartData={this.initCartData}
               showChooseGoodsAttrModal={this.showChooseGoodsAttrModal}
+              // 显示订单备注输入框函数
+              showOrderNotesInputModal={this.showOrderNotesInputModal}
             />
           );
         }
@@ -116,6 +124,38 @@ export class Cart extends React.Component {
         cartShopListView: null,
       });
     }
+  }
+
+  /**
+   * 显示订单备注输入对话框
+   */
+  showOrderNotesInputModal(shopId, shoppingCartLine) {
+    this.setState(
+      {
+        createOrderData: { shopId, shoppingCartLine }, // 订单提交数据
+        showNotesInputModal: true,  // 订单备注信息输入模态框状态变量
+      }
+    );
+  }
+
+  /**
+   * 关闭订单备注输入对话框
+   */
+  closeNotesInputModal() {
+    this.setState(
+      {
+        showNotesInputModal: false, // 订单备注输入框
+      }
+    );
+  }
+
+  /**
+   * 路由跳转函数
+   * @param {string} location - 路由地址
+   */
+  gotoRouteLocation(location){
+    let history = this.props.history;
+    history.push(location);
   }
 
   render() {
@@ -155,6 +195,7 @@ export class Cart extends React.Component {
             </div>
           </div>
         </StickyContainer>
+        {/** 商品数量选择对话框 */}
         <GoodsAttributesChoose
           showChooseAttrModal={this.state.showChooseAttrModal}
           closeChooseGoodsAttrModal={this.closeChooseGoodsAttrModal}
@@ -162,6 +203,15 @@ export class Cart extends React.Component {
           selectGoodsQuantity={this.state.selectGoodsQuantity}
           cartWebService={this.cartWebService}
           initCartData={this.initCartData}
+        />
+        {/** 订单备注信息输入对话框 */}
+        <OrderNotesInput
+          showNotesInputModal={this.state.showNotesInputModal} // 订单备注信息输入框状态变量
+          closeNotesInputModal={this.closeNotesInputModal} // 关闭订单备注信息输入框
+          createOrderData={this.state.createOrderData}
+          orderWebService={this.orderWebService}
+          initCartData={this.initCartData}
+          gotoRouteLocation={this.gotoRouteLocation} // 路由跳转函数
         />
       </div>
     );
@@ -287,7 +337,20 @@ class CartShopItem extends React.Component {
                 {this.settlementAmount()}
               </span>
             </div>
-            <div className="cart-item__action-settlement__btn">
+            <div
+              className="cart-item__action-settlement__btn"
+              onClick={
+                // 提交订单按钮点击事件，点击按钮提交订单
+                (event) => {
+                  event.stopPropagation();
+                  // 进行结算操作
+                  this.props.showOrderNotesInputModal(
+                    this.props.cartShopData.shopThinResponse.shopId, // 店铺编号
+                    this.props.cartShopData.shoppingCartLine, // 购买商品项列表
+                  );
+                }
+              }
+            >
               去结算
             </div>
           </div>
@@ -422,6 +485,10 @@ class GoodsAttributesChoose extends React.Component {
     this.onWrapTouchStart = this.onWrapTouchStart.bind(this);
     this.fixVirtualKeyboardScroll = this.fixVirtualKeyboardScroll.bind(this);
     this.submitUpdateAttr = this.submitUpdateAttr.bind(this);
+  }
+
+  comopnentDidMount() {
+    this.fixVirtualKeyboardScroll();
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
@@ -559,3 +626,173 @@ class GoodsAttributesChoose extends React.Component {
 
 /** 将 GoodsAttributesChoose 转换为 受控组件 */
 GoodsAttributesChoose = createForm()(GoodsAttributesChoose);
+
+class OrderNotesInput extends React.Component {
+  constructor(props) {
+    super(props);
+    // 初始化参数
+    this.state = {
+      moneyKeyboardWrapProps: {}, // 输入框自定义虚拟键盘属性,用于解决软键盘滚动问题
+    }
+
+    // 绑定 this
+    this.closest = this.closest.bind(this);
+    this.onWrapTouchStart = this.onWrapTouchStart.bind(this);
+    this.fixVirtualKeyboardScroll = this.fixVirtualKeyboardScroll.bind(this);
+    this.submitOrder = this.submitOrder.bind(this);
+  }
+
+  componentDidMount() {
+    this.fixVirtualKeyboardScroll();
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    // 判断组件是否更新
+    if ((this.props.showNotesInputModal !== prevProps.showNotesInputModal) && this.props.createOrderData) {
+      // 初始化输入框数据
+      this.props.form.setFieldsValue({ 'orderNotes': null });
+    }
+  }
+
+  /**
+   * 店铺级别的提交订单功能 - 提交当前的店铺所有商品
+   */
+  submitOrder() {
+    // 关闭提交订单窗口
+    this.props.closeNotesInputModal();
+
+    if (this.props.createOrderData) {
+      // 验证传参数据是否合法
+      // 处理提交订单数据
+      let _orderLine = [];
+      _orderLine = this.props.createOrderData.shoppingCartLine.map(
+        (elem) => (
+          {
+            itemAttribute: elem.itemAttribute,
+            itemId: elem.itemId,
+            paidAmount: elem.price,
+            quantity: elem.quantity,
+          }
+        )
+      );
+      console.log('订单备注:', this.props.form.getFieldValue('orderNotes'),
+        '\n订单行数据:', _orderLine, 'shopId:', this.props.createOrderData.shopId);
+      this.props.orderWebService.create(
+        {
+          // 传输参数
+          params: {
+            buyerNotes: this.props.form.getFieldValue('orderNotes'), // 订单备注
+            orderLine: _orderLine, // 订单行数据
+            shopId: this.props.createOrderData.shopId, // 提交订单的店铺
+          },
+          // 成功回调函数
+          success: (res) => {
+            Toast.success('成功创建订单');
+            // 重新请求数据
+            this.props.initCartData();
+            // 路由重定向到订单页面
+            this.props.gotoRouteLocation('/tab/order');
+          },
+        }
+      );
+    }
+  }
+
+  /**
+   * 修复 Android, iOS 点击穿透
+   */
+  closest(el, selector) {
+    const matchesSelector = el.matches || el.webkitMatchesSelector || el.mozMatchesSelector || el.msMatchesSelector;
+    while (el) {
+      if (matchesSelector.call(el, selector)) {
+        return el;
+      }
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  /**
+   * 修复 Android, iOS 点击穿透
+   */
+  onWrapTouchStart = (e) => {
+    // fix touch to scroll background page on iOS
+    if (!/iPhone|iPod|iPad/i.test(navigator.userAgent)) {
+      return;
+    }
+    const pNode = this.closest(e.target, '.am-modal-content');
+    if (!pNode) {
+      e.preventDefault();
+    }
+  }
+
+  /**
+   * 修复虚拟键盘滚动穿透问题
+   */
+  fixVirtualKeyboardScroll() {
+    // 通过自定义 moneyKeyboardWrapProps 修复虚拟键盘滚动穿透问题
+    // https://github.com/ant-design/ant-design-mobile/issues/307
+    // https://github.com/ant-design/ant-design-mobile/issues/163
+    const isIPhone = new RegExp('\\biPhone\\b|\\biPod\\b', 'i').test(window.navigator.userAgent);
+    if (isIPhone) {
+      this.setState(
+        {
+          moneyKeyboardWrapProps: {
+            onTouchStart: event => event.preventDefault(),
+          },
+        }
+      );
+    }
+  }
+
+  render() {
+    /**
+     * 商品数量选择参数
+     */
+    const { getFieldProps } = this.props.form;
+
+    return (
+      <Modal
+        visible={this.props.showNotesInputModal}
+        popup
+        maskClosable
+        animationType="slide-up"
+        onClose={() => { this.props.closeNotesInputModal(); }}
+        title="订单备注信息"
+        // 弹出框确认
+        footer={
+          [{
+            text: '提交订单',
+            onPress: () => {
+              this.submitOrder();
+            }
+          }]
+        }
+        wrapProps={{ onTouchStart: this.onWrapTouchStart }}
+        afterClose={() => { }}
+      >
+        <div className="notesModal-layout">
+          <List>
+            <InputItem
+              // 可控组件，进行数据绑定
+              {...getFieldProps('orderNotes', {
+                // 初始化值
+                initialValue: '',
+              })}
+              type={'string'}
+              defaultValue={''}
+              placeholder="订单备注信息"
+              clear
+              moneyKeyboardWrapProps={this.state.moneyKeyboardWrapProps}
+            >
+              订单备注
+            </InputItem>
+          </List>
+        </div>
+      </Modal>
+    );
+  }
+}
+
+/** 将 OrderNotesInput 转换为 受控组件 */
+OrderNotesInput = createForm()(OrderNotesInput);
