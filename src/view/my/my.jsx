@@ -6,6 +6,10 @@ export class My extends React.Component{
     super(props);
   }
 
+  componentDidMount(){
+
+  }
+
   render(){
     return(
       <h1>My Page</h1>
