@@ -1,8 +1,9 @@
 import React from 'react';
 import './order.css';
-import {NavBar, Card, Icon, Toast} from 'antd-mobile';
-import {OrderWebService} from "../../service/order/order.web.service";
-import {TimeUtil} from "../../util/time.util";
+import { NavBar, Card, Icon, Toast } from 'antd-mobile';
+import { Sticky, StickyContainer } from 'react-sticky';
+import { OrderWebService } from "../../service/order/order.web.service";
+import { TimeUtil } from "../../util/time.util";
 
 export class Order extends React.Component {
   orderWebService = new OrderWebService();
@@ -36,24 +37,24 @@ export class Order extends React.Component {
     for (let i = 0; i < orderList.length; i++) {
       let orderInfo = orderList[i];
       orderView.push(
-        <Card style={{margin: "5px", marginBottom: "10px"}}
-              onClick={() => {
-                this.props.history.push('/route/orderDetail/' + orderInfo.orderId);
-              }}
+        <Card key={`${orderInfo.orderId}-${Math.random().toString().substr(2, 5)}`} style={{ margin: "5px", marginBottom: "10px" }}
+          onClick={() => {
+            this.props.history.push('/route/orderDetail/' + orderInfo.orderId);
+          }}
         >
           <Card.Header
-            title={(<span style={{marginLeft: "5px"}}>{orderInfo.shopName}</span>)}
+            title={(<span style={{ marginLeft: "5px" }}>{orderInfo.shopName}</span>)}
             thumb={orderInfo.shopImage}
-            thumbStyle={{width: "50px", height: "50px"}}
-            extra={(<span style={{fontSize: "14px"}}>
+            thumbStyle={{ width: "50px", height: "50px" }}
+            extra={(<span style={{ fontSize: "14px" }}>
               {this.getOrderStatus(orderInfo)}
             </span>)}
           />
           <Card.Body>
             <span>{orderInfo.description}</span>
-            <span style={{float: "right"}}>{"￥" + orderInfo.paidAmount}</span>
-            <br/>
-            <br/>
+            <span style={{ float: "right" }}>{"￥" + orderInfo.paidAmount}</span>
+            <br />
+            <br />
             <span>{TimeUtil.formatTime(orderInfo.createdAt, false)}</span>
             {this.getOrderOp(orderInfo)}
           </Card.Body>
@@ -78,33 +79,33 @@ export class Order extends React.Component {
     }
     if (orderInfo.enableStatus === 0) {
       return (
-        <a className={"order-op-button"} style={{float: "right"}}
-           onClick={(e) => {
-             e.preventDefault();
-             e.stopPropagation();
-             this.cancelOrder(orderInfo.orderId);
-           }}>取消订单</a>
+        <a className={"order-op-button"} style={{ float: "right" }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.cancelOrder(orderInfo.orderId);
+          }}>取消订单</a>
       )
     }
     if (orderInfo.payStatus === -1) {
       return (
-        <a className={"order-op-button"} style={{float: "right"}}
-           onClick={(e) => {
-             e.preventDefault();
-             e.stopPropagation();
-             this.payOrder(orderInfo.orderId, orderInfo.paidAmount);
-           }}
+        <a className={"order-op-button"} style={{ float: "right" }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.payOrder(orderInfo.orderId, orderInfo.paidAmount);
+          }}
         >去支付</a>
       )
     }
     if (orderInfo.receiveStatus === 0) {
       return (
-        <a className={"order-op-button"} style={{float: "right"}}
-           onClick={(e) => {
-             e.preventDefault();
-             e.stopPropagation();
-             this.props.history.push("/route/commentCreate/" + orderInfo.orderId);
-           }}
+        <a className={"order-op-button"} style={{ float: "right" }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.props.history.push("/route/commentCreate/" + orderInfo.orderId);
+          }}
         >评价订单</a>
       )
     }
@@ -114,13 +115,23 @@ export class Order extends React.Component {
   render() {
     return (
       <div>
-        <NavBar
-          mode="light"
-          icon={<Icon type="left"/>}
-          onLeftClick={() => this.props.history.push('/tab/home')}
-          style={{marginBottom: "15px"}}
-        >我的订单</NavBar>
-        {this.getOrderList()}
+        <StickyContainer>
+          <Sticky>
+            {({ style }) =>
+              <div style={{ ...style, zIndex: 1 }}>
+                {/** 从非Tab导航跳转到购物差显示导航栏 */}
+                <NavBar
+                  mode="light"
+                  icon={<Icon type="left" />}
+                  onLeftClick={() => this.props.history.push('/tab/home')}
+                >
+                  我的订单
+                </NavBar>
+              </div>
+            }
+          </Sticky>
+          {this.getOrderList()}
+        </StickyContainer>
       </div>
     );
   }
