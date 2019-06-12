@@ -20,6 +20,8 @@ export class My extends React.Component {
 
     // 绑定 this
     this.initUserInfo = this.initUserInfo.bind(this);
+    this.userLogout = this.userLogout.bind(this);
+    this.gotoRouteLocation = this.gotoRouteLocation.bind(this);
   }
 
   static propTypes = {
@@ -52,6 +54,29 @@ export class My extends React.Component {
         },
       }
     );
+  }
+
+  /**
+  * 路由跳转函数
+  * @param {string} location - 路由地址
+  */
+  gotoRouteLocation(location) {
+    let history = this.props.history;
+    history.push(location);
+  }
+
+  /**
+   * 用户登出函数
+   */
+  userLogout() {
+    this.userWebService.logout({
+      // 传输参数
+      params: null,
+      // 成功回调函数
+      success: (res) => {
+        this.gotoRouteLocation(`http://login.qtu404.com?redirectTo=${document.location}`);
+      },
+    });
   }
 
   render() {
