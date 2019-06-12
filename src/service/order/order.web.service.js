@@ -7,7 +7,7 @@ export class OrderWebService extends OrderCommonService {
      */
     create = (request) => {
         console.log('创建订单');
-        this.get({
+        this.post({
             url: '/api/web/order/create',
             request: request
         });
