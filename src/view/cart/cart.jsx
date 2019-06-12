@@ -31,6 +31,7 @@ export class Cart extends React.Component {
     this.showChooseGoodsAttrModal = this.showChooseGoodsAttrModal.bind(this);
     this.closeNotesInputModal = this.closeNotesInputModal.bind(this);
     this.showOrderNotesInputModal = this.showOrderNotesInputModal.bind(this);
+    this.gotoRouteLocation = this.gotoRouteLocation.bind(this);
   }
 
   // 组件装载
